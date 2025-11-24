@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class TestServerA : ModuleRules
+public class DistributedDedicatedServer : ModuleRules
 {
-	public TestServerA(ReadOnlyTargetRules Target) : base(Target)
+	public DistributedDedicatedServer(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PublicIncludePaths.Add("Runtime/Launch/Public");
 
@@ -14,6 +14,7 @@ public class TestServerA : ModuleRules
 		PrivateDependencyModuleNames.Add("CoreUObject");
 		PrivateDependencyModuleNames.Add("ApplicationCore");
 		PrivateDependencyModuleNames.Add("Projects");
-		//PrivateDependencyModuleNames.Add("SimpleNetChannel");
+
+		PrivateDependencyModuleNames.Add("DedicatedServerUtils");
 	}
 }

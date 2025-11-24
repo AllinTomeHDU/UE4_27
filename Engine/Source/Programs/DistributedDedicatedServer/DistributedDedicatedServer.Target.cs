@@ -4,13 +4,13 @@ using UnrealBuildTool;
 using System.Collections.Generic;
 
 [SupportedPlatforms(UnrealPlatformClass.Desktop)]
-public class TestServerATarget : TargetRules
+public class DistributedDedicatedServerTarget : TargetRules
 {
-	public TestServerATarget(TargetInfo Target) : base(Target)
+	public DistributedDedicatedServerTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Program;
 		LinkType = TargetLinkType.Monolithic;
-		LaunchModuleName = "TestServerA";
+		LaunchModuleName = "DistributedDedicatedServer";
 
 		// Lean and mean
 		bBuildDeveloperTools = false;
