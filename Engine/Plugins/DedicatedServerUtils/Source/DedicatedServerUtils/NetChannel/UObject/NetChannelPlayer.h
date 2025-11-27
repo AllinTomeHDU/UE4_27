@@ -18,5 +18,5 @@ protected:
 
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void RecvProtocol(uint8 InProtocol) override;
+	virtual void RecvProtocol(uint32 InProtocol) override;
 };

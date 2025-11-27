@@ -30,7 +30,9 @@ void FNetConnectionUDP::Verify()
 	FNetConnectionBase::Verify();
 }
 
-void FNetConnectionUDP::Analysis(void* Data, int32 BytesNum)
+void FNetConnectionUDP::Analysis(uint8* InData, int32 BytesNum)
 {
-	UE_LOG(LogDedicatedServerUtils, Display, TEXT("Analysis Data: %s, length = %d"), UTF8_TO_TCHAR((char*)Data), BytesNum);
+	FNetConnectionBase::Analysis(InData, BytesNum);
+
+
 }

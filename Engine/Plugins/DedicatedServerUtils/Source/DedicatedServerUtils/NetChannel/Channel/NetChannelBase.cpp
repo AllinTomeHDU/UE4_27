@@ -1,7 +1,12 @@
 #include "NetChannelBase.h"
-#include "../Connection/Base/NetConnectionBase.h"
 #include "DedicatedServerUtils/DedicatedServerUtils.h"
+#include "../Connection/Base/NetConnectionBase.h"
+#include "../UObject/NetChannelController.h"
+#include "../UObject/NetChannelPlayer.h"
 
+
+FSimpleReturnDelegate FNetChannelBase::SimpleControllerDelegate;
+FSimpleReturnDelegate FNetChannelBase::SimplePlayerDelegate;
 
 FNetChannelBase::FNetChannelBase()
 {
@@ -10,17 +15,40 @@ FNetChannelBase::FNetChannelBase()
 
 void FNetChannelBase::Init()
 {
+	GUID = FGuid::NewGuid();
+}
 
+void FNetChannelBase::Tick(float DeltaTime)
+{
+	if (NetworkObject.IsValid())
+	{
+		NetworkObject->Tick(DeltaTime);
+	}
 }
 
 void FNetChannelBase::Close()
 {
 	GUID = FGuid();
+	if (NetworkObject.IsValid())
+	{
+		NetworkObject->Close();
+		NetworkObject->MarkPendingKill();
+		NetworkObject.Reset();
+		NetworkObject = nullptr;
+	}
+}
+
+void FNetChannelBase::RecvProtocol(uint32 InProtocol)
+{
+	if (NetworkObject.IsValid())
+	{
+		NetworkObject->RecvProtocol(InProtocol);
+	}
 }
 
 void FNetChannelBase::AddMsg(TArray<uint8>& InData)
 {
-	MsgQueue.Add(MoveTemp(InData));
+	MsgQueue.Enqueue(InData);
 }
 
 
@@ -38,22 +66,55 @@ void FNetChannelBase::Send(const TArray<uint8>& InData)
 
 bool FNetChannelBase::Recv(TArray<uint8>& InData)
 {
-	if (MsgQueue.IsValidIndex(0))
-	{
-		InData = MoveTemp(MsgQueue[0]);
-		MsgQueue.RemoveAt(0);
-		return true;
-	}
-	return false;
+	return (!MsgQueue.IsEmpty() && MsgQueue.Dequeue(InData)) ? true : false;
 }
 
 void FNetChannelBase::SpawnController()
 {
-	GUID = FGuid::NewGuid();
-
-
+	RegisterObject(SimpleControllerDelegate, UNetChannelController::StaticClass());
 }
 
 void FNetChannelBase::SpawnPlayer()
 {
+	RegisterObject(SimplePlayerDelegate, UNetChannelPlayer::StaticClass());
+}
+
+UNetChannelObject* FNetChannelBase::SpawnObject(UClass* InClass)
+{
+	if (auto InObject = NewObject<UNetChannelObject>(InClass, InClass))
+	{
+		return InObject;
+	}
+	return nullptr;
+}
+
+void FNetChannelBase::RegisterObject(FSimpleReturnDelegate InDelegate, UClass* InObjectClass)
+{
+	if (NetworkObject.IsValid())
+	{
+		Close();
+	}
+
+	if (InDelegate.IsBound())
+	{
+		if (UClass* InClass = InDelegate.Execute())
+		{
+			NetworkObject = TStrongObjectPtr<UNetChannelObject>(SpawnObject(InClass));
+		}
+		else
+		{
+			NetworkObject = TStrongObjectPtr<UNetChannelObject>(SpawnObject(InObjectClass));
+		}
+	}
+	else
+	{
+		NetworkObject = TStrongObjectPtr<UNetChannelObject>(SpawnObject(InObjectClass));
+	}
+
+	if (NetworkObject.IsValid())
+	{
+		NetworkObject->LinkState = Connection.Pin()->GetLinkState();
+		NetworkObject->Channel = this;
+		NetworkObject->Init();
+	}
 }

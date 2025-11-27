@@ -17,11 +17,12 @@ public:
 
 	virtual bool Init();
 	virtual void Tick(float DeltaTime);
+	virtual void Close();
 
 protected:
 	virtual TStatId GetStatId() const { return TStatId(); }
 
-	virtual void VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, uint8* InData, int32 InBytesNum);
+	virtual void VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, uint8* InData, int32 BytesNum);
 
 	struct FNetConnections
 	{

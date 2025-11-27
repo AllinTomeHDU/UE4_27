@@ -3,6 +3,7 @@
 #include "Core/NetChannelProtocols.h"
 #include "DedicatedServerUtils/DedicatedServerUtils.h"
 #include "Driver/NetChannelDriverUDP.h"
+#include "Driver/NetChannelDriverTCP.h"
 #include "Connection/Base/NetConnectionBase.h"
 #include "IPAddress.h"
 
@@ -14,7 +15,7 @@ FNetChannelManager* FNetChannelManager::CreateNetChannelManager(ENetLinkState In
 	case ENetSocketType::UDP:
 		return new FNetChannelDriverUDP(InState);
 	case ENetSocketType::TCP:
-		break;
+		return new FNetChannelDriverTCP(InState);
 	}
 
 	return nullptr;
@@ -29,20 +30,25 @@ void FNetChannelManager::Tick(float DeltaTime)
 {
 }
 
+void FNetChannelManager::Close()
+{
+}
+
 #if PLATFORM_WINDOWS
 #pragma optimize("",off)
 #endif
-void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, uint8* InData, int32 InBytesNum)
+void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, uint8* InData, int32 BytesNum)
 {
-	if (!InConnection.IsValid()) return;
+	if (!InConnection.IsValid() || !InConnection->GetMainChannel()) return;
+
+	TArray<uint8> NewData(InData, BytesNum);
+	auto Channel = InConnection->GetMainChannel();
+	if (BytesNum > sizeof(FNetBunchHead))
+	{
+		Channel->AddMsg(NewData);
+	}
 
 	FNetBunchHead Head = *(FNetBunchHead*)InData;
-	if (InBytesNum < sizeof(FNetBunchHead) || !InConnection->GetMainChannel()) return;
-
-	TArray<uint8> NewData(InData, InBytesNum);
-	auto Channel = InConnection->GetMainChannel();
-	Channel->AddMsg(NewData);
-
 	if (LinkState == ENetLinkState::Listen)
 	{
 		switch (Head.ProtocolsNumber)
@@ -63,13 +69,11 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			}
 			case P_Login:
 			{
-				int32 ConnectID = -1;
 				FGuid MainGUID;
 				TArray<FGuid> ChannelGUIDs;
-				NETCHANNEL_PROTOCOLS_RECV(P_Login, ConnectID, MainGUID, ChannelGUIDs);
-				if (ConnectID != -1 && MainGUID != FGuid())
+				NETCHANNEL_PROTOCOLS_RECV(P_Login, MainGUID, ChannelGUIDs);
+				if (MainGUID != FGuid())
 				{
-					InConnection->SetID(ConnectID);
 					InConnection->GetMainChannel()->SetGUID(MainGUID);
 					NETCHANNEL_PROTOCOLS_SEND(P_Welcom);
 					InConnection->SetState(ENetConnectionState::Login);
@@ -78,7 +82,6 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			}
 			case P_Join:
 			{
-				NETCHANNEL_PROTOCOLS_RECV(P_Join);
 				InConnection->SetState(ENetConnectionState::Join);
 				break;
 			}
@@ -90,18 +93,15 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 		{
 			case P_Challenge:
 			{
-				NETCHANNEL_PROTOCOLS_RECV(P_Challenge);
-				int32 ConnectID = Connections.LocalConnection->GetID();
 				FGuid MainGUID = Connections.LocalConnection->GetMainChannel()->GetGUID();
 				TArray<FGuid> ChannelGUIDs;
 				Connections.LocalConnection->GetActiveChannelGUIDs(ChannelGUIDs);
-				NETCHANNEL_PROTOCOLS_SEND(P_Login, ConnectID, MainGUID, ChannelGUIDs);
+				NETCHANNEL_PROTOCOLS_SEND(P_Login, MainGUID, ChannelGUIDs);
 				Connections.LocalConnection->SetState(ENetConnectionState::Login);
 				break;
 			}
 			case P_Welcom:
 			{
-				NETCHANNEL_PROTOCOLS_RECV(P_Welcom);
 				Connections.LocalConnection->SetState(ENetConnectionState::Join);
 				NETCHANNEL_PROTOCOLS_SEND(P_Join);
 				break;

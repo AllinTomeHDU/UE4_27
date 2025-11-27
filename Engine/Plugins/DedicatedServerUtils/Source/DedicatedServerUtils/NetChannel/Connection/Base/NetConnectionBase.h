@@ -25,7 +25,7 @@ public:
 	virtual void Tick(float DeltaTime);
 
 	virtual void Verify();
-	virtual void Analysis(void* Data, int32 BytesNum);
+	virtual void Analysis(uint8* InData, int32 BytesNum);
 
 	FNetChannelBase* GetMainChannel();
 	void GetActiveChannelGUIDs(TArray<FGuid>& GUIDs);
@@ -34,9 +34,9 @@ protected:
 	FSocket* Socket;
 	TSharedPtr<FInternetAddr> LocalAddr;
 	TArray<FNetChannelBase> Channels;
-	ENetConnectionState Sate;
 
-	uint32 ID;
+	ENetLinkState LinkState;
+	ENetConnectionState Sate;
 
 	uint8 bLock : 1;
 
@@ -44,11 +44,10 @@ public:
 	FORCEINLINE void SetSocket(FSocket* InSocket) { Socket = InSocket; }
 	FORCEINLINE TSharedRef<FInternetAddr> GetAddr() const { return LocalAddr.ToSharedRef(); }
 
+	FORCEINLINE void SetLinkState(const ENetLinkState InLinkState) { LinkState = InLinkState; }
+	FORCEINLINE const ENetLinkState GetLinkState() const { return LinkState; }
 	FORCEINLINE void SetState(const ENetConnectionState InSate) { Sate = InSate; }
 	FORCEINLINE ENetConnectionState GetState() const { return Sate; }
-
-	FORCEINLINE const uint32 GetID() const { return ID; }
-	FORCEINLINE void SetID(const uint32& InID) { ID = InID; }
 
 	FORCEINLINE void Lock() { bLock = true; }
 	FORCEINLINE void UnLock() { bLock = false; }

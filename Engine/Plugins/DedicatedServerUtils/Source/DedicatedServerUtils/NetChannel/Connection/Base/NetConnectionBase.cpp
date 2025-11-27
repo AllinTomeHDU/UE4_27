@@ -9,7 +9,6 @@
 FNetConnectionBase::FNetConnectionBase()
 	: Socket(nullptr)
 	, Sate(ENetConnectionState::UnInit)
-	, ID(FMath::RandRange(0, MAX_int32 - 1))
 	, bLock(false)
 {
 	Channels.SetNum(CHANNEL_NUM);	// 预分配
@@ -49,13 +48,20 @@ void FNetConnectionBase::Init()
 	}
 	if (auto MainChannel = GetMainChannel())
 	{
-		MainChannel->SpawnController();
 		MainChannel->Init();
+		MainChannel->SpawnController();
 	}
 }
 
 void FNetConnectionBase::Tick(float DeltaTime)
 {
+	for (auto& Tmp : Channels)
+	{
+		if (Tmp.IsValid())
+		{
+			Tmp.Tick(DeltaTime);
+		}
+	}
 }
 
 void FNetConnectionBase::Verify()
@@ -69,8 +75,18 @@ void FNetConnectionBase::Verify()
 	}
 }
 
-void FNetConnectionBase::Analysis(void* Data, int32 BytesNum)
+void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 {
+	FNetBunchHead Head = *(FNetBunchHead*)InData;
+	if (auto Channel = GetMainChannel())
+	{
+		if (BytesNum > sizeof(FNetBunchHead))
+		{
+			TArray<uint8> InNewData(InData, BytesNum);
+			Channel->AddMsg(InNewData);
+		}
+		Channel->RecvProtocol(Head.ProtocolsNumber);
+	}
 }
 
 FNetChannelBase* FNetConnectionBase::GetMainChannel()

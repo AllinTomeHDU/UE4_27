@@ -15,6 +15,8 @@ FNetChannelDriverUDP::FNetChannelDriverUDP(const ENetLinkState InState)
 
 bool FNetChannelDriverUDP::Init()
 {
+	if (!FNetChannelManager::Init()) return false;
+
 	if (Connections.LocalConnection)
 	{
 		auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem();
@@ -52,6 +54,7 @@ bool FNetChannelDriverUDP::Init()
 		if (!Socket->SetNonBlocking()) return false;
 
 		Connections.LocalConnection->SetSocket(Socket);
+		Connections.LocalConnection->SetLinkState(LinkState);
 		Connections.LocalConnection->Init();
 
 		if (LinkState == ENetLinkState::Listen)
@@ -61,6 +64,7 @@ bool FNetChannelDriverUDP::Init()
 				Connections.RemoteConnections.Add(MakeShareable(new FNetConnectionUDP()));
 				TSharedPtr<FNetConnectionBase> NewConnection = Connections.RemoteConnections.Last();
 				NewConnection->SetSocket(Socket);
+				NewConnection->SetLinkState(LinkState);
 				NewConnection->Init();
 			}
 			Connections.LocalConnection->SetState(ENetConnectionState::Join);
@@ -76,13 +80,21 @@ bool FNetChannelDriverUDP::Init()
 
 void FNetChannelDriverUDP::Tick(float DeltaTime)
 {
+	FNetChannelManager::Tick(DeltaTime);
+
 	if (!Socket || !Connections.LocalConnection.IsValid()) return;
 
-	Connections.LocalConnection->Tick(DeltaTime);
+	if (Connections.LocalConnection->GetState() == ENetConnectionState::Join)
+	{
+		Connections.LocalConnection->Tick(DeltaTime);
+	}
 
 	for (auto& Tmp : Connections.RemoteConnections)
 	{
-		Tmp->Tick(DeltaTime);
+		if (Tmp->GetState() == ENetConnectionState::Join)
+		{
+			Tmp->Tick(DeltaTime);
+		}
 	}
 
 	uint8 Data[BUFFER_SIZE] = { 0 };
@@ -91,6 +103,11 @@ void FNetChannelDriverUDP::Tick(float DeltaTime)
 	TSharedPtr<FInternetAddr> RemoteAddr = SocketSubsystem->CreateInternetAddr();
 	if (Socket->RecvFrom(Data, BUFFER_SIZE, BytesRead, *RemoteAddr))
 	{
+		if (BytesRead < sizeof(FNetBunchHead))
+		{
+			UE_LOG(LogDedicatedServerUtils, Display, TEXT("Recv a wrong data, size < head"));
+			return;
+		}
 		if (LinkState == ENetLinkState::Listen)
 		{
 			if (auto Connect = Connections[RemoteAddr])
@@ -123,5 +140,15 @@ void FNetChannelDriverUDP::Tick(float DeltaTime)
 				VerifyConnectionInfo(Connections.LocalConnection, Data, BytesRead);
 			}
 		}
+	}
+}
+
+void FNetChannelDriverUDP::Close()
+{
+	FNetChannelManager::Close();
+
+	if (auto Subsystem = FNetConnectionBase::GetSocketSubsystem())
+	{
+		Subsystem->DestroySocket(Socket);
 	}
 }

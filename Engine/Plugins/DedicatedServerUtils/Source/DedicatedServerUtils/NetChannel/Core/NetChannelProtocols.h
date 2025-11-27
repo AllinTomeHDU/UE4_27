@@ -10,6 +10,12 @@ class DEDICATEDSERVERUTILS_API FRecursionMessageInfo
 {
 public:
 	template<typename ...ParamTypes>
+	static int32 GetParamsNum(ParamTypes& ...Params)
+	{
+		return sizeof...(Params);
+	}
+
+	template<typename ...ParamTypes>
 	static void ConstructSendParams(FNetChannelIOStream& InStream, ParamTypes& ...Params) {}
 
 	template<class T, typename ...ParamTypes>
@@ -41,10 +47,11 @@ FNetChannelIOStream STREAM(BUFFER);
 #define DEFINITION_NETCHANNEL_HEAD(ProtocolsName) \
 FNetBunchHead HEAD; \
 HEAD.ProtocolsNumber = (uint32)P_##ProtocolsName; \
+HEAD.ChannelGUID = InChannel->GetGUID(); \
 STREAM << HEAD;
 
 
-#define DEFINITION_NETCHANNEL_PROTOCOLS(ProtocolsName, ProtocolsNumber) \
+#define DEFINITION_NETCHANNEL_PROTOCOLS(ProtocolsName,ProtocolsNumber) \
 enum{P_##ProtocolsName = ProtocolsNumber}; \
 template<> class DEDICATEDSERVERUTILS_API FNetChannelProtocols<ProtocolsNumber>	\
 { \
@@ -80,9 +87,10 @@ public: \
 /**
 * 定义协议
 */
-DEFINITION_NETCHANNEL_PROTOCOLS(Hello, 1001)
-DEFINITION_NETCHANNEL_PROTOCOLS(Challenge, 1002)
-DEFINITION_NETCHANNEL_PROTOCOLS(Login, 1003)
-DEFINITION_NETCHANNEL_PROTOCOLS(Welcom, 1004)
-DEFINITION_NETCHANNEL_PROTOCOLS(Join, 1005)
+DEFINITION_NETCHANNEL_PROTOCOLS(Debug,0)
+DEFINITION_NETCHANNEL_PROTOCOLS(Hello,1)
+DEFINITION_NETCHANNEL_PROTOCOLS(Challenge,2)
+DEFINITION_NETCHANNEL_PROTOCOLS(Login,3)
+DEFINITION_NETCHANNEL_PROTOCOLS(Welcom,4)
+DEFINITION_NETCHANNEL_PROTOCOLS(Join,5)
 

@@ -7,6 +7,7 @@
 #define CONNECT_NUM 2000
 #define BUFFER_SIZE 1024
 
+UENUM(BlueprintType)
 enum class ENetLinkState : uint8
 {
 	Listen,
@@ -30,8 +31,7 @@ enum class ENetConnectionState : uint8
 struct DEDICATEDSERVERUTILS_API FNetBunchHead
 {
 	uint32 ProtocolsNumber;
-	//uint32 ConnectID;
-	//FGuid ChannelGUID;
+	FGuid ChannelGUID;
 };
 
 USTRUCT(BlueprintType)

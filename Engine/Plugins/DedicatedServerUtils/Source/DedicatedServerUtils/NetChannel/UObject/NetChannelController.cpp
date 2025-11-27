@@ -13,7 +13,7 @@ void UNetChannelController::Tick(float DeltaTime)
 
 }
 
-void UNetChannelController::RecvProtocol(uint8 InProtocol)
+void UNetChannelController::RecvProtocol(uint32 InProtocol)
 {
 	Super::RecvProtocol(InProtocol);
 

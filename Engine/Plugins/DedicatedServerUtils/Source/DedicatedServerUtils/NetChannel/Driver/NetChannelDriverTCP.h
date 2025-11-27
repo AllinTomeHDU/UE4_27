@@ -7,15 +7,13 @@ class FSocket;
 class FNetConnectionBase;
 
 
-class FNetChannelDriverUDP : public FNetChannelManager
+class FNetChannelDriverTCP : public FNetChannelManager
 {
 public:
-	FNetChannelDriverUDP(const ENetLinkState InState);
+	FNetChannelDriverTCP(const ENetLinkState InState);
 
 	virtual bool Init() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void Close() override;
 
-protected:
-	FSocket* Socket;
 };

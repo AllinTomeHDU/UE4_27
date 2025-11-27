@@ -10,6 +10,14 @@ void UNetChannelObject::Tick(float DeltaTime)
 
 }
 
-void UNetChannelObject::RecvProtocol(uint8 InProtocol)
+void UNetChannelObject::Close()
 {
+}
+
+void UNetChannelObject::RecvProtocol(uint32 InProtocol)
+{
+	if (RecvDelegate.IsBound())
+	{
+		RecvDelegate.Broadcast(InProtocol, Channel);
+	}
 }
