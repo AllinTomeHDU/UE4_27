@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "HAL/Runnable.h"
-#include "DedicatedServerUtils/Thread/Definition/ServerThreadEvent.h"
-#include "DedicatedServerUtils/Thread/Interface/ServerThreadProxyInterface.h"
+#include "../Definition/ServerThreadEvent.h"
+#include "../Interface/ServerThreadProxyInterface.h"
 
 
 /**

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DedicatedServerUtils/Thread/Definition/ServerThreadType.h"
+#include "../Definition/ServerThreadType.h"
 
 
 struct DEDICATEDSERVERUTILS_API FServerCoroutinesRequest
@@ -32,15 +32,16 @@ public:
 protected:
 	virtual void Update(FServerCoroutinesRequest& CoroutinesRequest) = 0;
 
-	static TArray<TSharedPtr<IServerCoroutinesObject>>& GetArray()
-	{
-		static TArray<TSharedPtr<IServerCoroutinesObject>> Instance;
-		return Instance;
-	}
+	//static TArray<TSharedPtr<IServerCoroutinesObject>>& GetArray()
+	//{
+	//	static TArray<TSharedPtr<IServerCoroutinesObject>> Instance;
+	//	return Instance;
+	//}
 
 protected:
 	uint8 bAwaken : 1;
 	FServerThreadHandle Handle;
+	static TArray<TSharedPtr<IServerCoroutinesObject>> CoroutinesArr;
 };
 
 // Process handle 

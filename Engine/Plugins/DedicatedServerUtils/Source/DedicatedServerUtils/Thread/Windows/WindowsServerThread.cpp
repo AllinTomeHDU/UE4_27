@@ -9,7 +9,6 @@ THIRD_PARTY_INCLUDES_START
 #include <wincodec.h>
 #pragma warning(pop)
 THIRD_PARTY_INCLUDES_END
-#pragma optimize("",off) 
 #pragma comment( lib, "windowscodecs.lib" )	
 
 static HANDLE WindowsRowThread = NULL;
@@ -18,6 +17,7 @@ FSimpleDelegate FWindowsServerThread::RunDelegate;
 #endif
 
 #if PLATFORM_WINDOWS
+#pragma optimize("",off) 
 uint32 WINAPI StartThread(LPVOID unused)
 {
 	FWindowsServerThread::RunDelegate.ExecuteIfBound();
@@ -32,6 +32,7 @@ uint32 WINAPI StartThread(LPVOID unused)
 	FWindowsServerThread::Hide();
 	return 0;
 }
+#pragma optimize("",on) 
 #endif
 
 void FWindowsServerThread::Show()

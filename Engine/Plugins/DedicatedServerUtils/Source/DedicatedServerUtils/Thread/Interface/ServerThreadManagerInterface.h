@@ -3,10 +3,10 @@
 #include "CoreMinimal.h"
 #include "Containers/Queue.h"
 #include "ServerThreadProxyInterface.h"
-#include "DedicatedServerUtils/Thread/Definition/ServerThreadMacro.h"
-#include "DedicatedServerUtils/Thread/Definition/ServerThreadType.h"
-#include "DedicatedServerUtils/Thread/Runnable/ServerThreadRunnableProxy.h"
-#include "DedicatedServerUtils/Thread/Coroutines/ServerCoroutines.h"
+#include "../Definition/ServerThreadMacro.h"
+#include "../Definition/ServerThreadType.h"
+#include "../Runnable/ServerThreadRunnableProxy.h"
+#include "../Coroutines/ServerCoroutines.h"
 
 
 /**
@@ -20,7 +20,7 @@ public:
 
 	virtual ~ICoroutinesContainer()
 	{
-		IServerCoroutinesObject::GetArray().Empty();
+		IServerCoroutinesObject::CoroutinesArr.Empty();
 	}
 
 	ICoroutinesContainer& operator<<(float TotalTime)
@@ -31,13 +31,13 @@ public:
 
 	ICoroutinesContainer& operator<<(const FSimpleDelegate& ThreadDelegate)
 	{
-		IServerCoroutinesObject::GetArray().Add(MakeShareable(new FServerCoroutinesObject(TmpTotalTime, ThreadDelegate)));
+		IServerCoroutinesObject::CoroutinesArr.Add(MakeShareable(new FServerCoroutinesObject(TmpTotalTime, ThreadDelegate)));
 		return *this;
 	}
 
 	ICoroutinesContainer& operator<<(const FServerOnGoingDelegate& ThreadDelegate)
 	{
-		IServerCoroutinesObject::GetArray().Add(MakeShareable(new FServerCoroutinesObject(TmpTotalTime, ThreadDelegate)));
+		IServerCoroutinesObject::CoroutinesArr.Add(MakeShareable(new FServerCoroutinesObject(TmpTotalTime, ThreadDelegate)));
 		return *this;
 	}
 
@@ -45,9 +45,9 @@ public:
 	void operator<<=(float DeltaTime)
 	{
 		TArray<TSharedPtr<IServerCoroutinesObject>> RemoveObject;
-		for (int32 i = 0; i < IServerCoroutinesObject::GetArray().Num(); i++) //改成i的形式 是为了安全考虑
+		for (int32 i = 0; i < IServerCoroutinesObject::CoroutinesArr.Num(); i++) //改成i的形式 是为了安全考虑
 		{
-			if (auto Tmp = IServerCoroutinesObject::GetArray()[i])
+			if (auto Tmp = IServerCoroutinesObject::CoroutinesArr[i])
 			{
 				FServerCoroutinesRequest Request(DeltaTime);
 				Tmp->Update(Request);
@@ -59,15 +59,15 @@ public:
 		}
 		for (auto& RemoveInstance : RemoveObject)
 		{
-			IServerCoroutinesObject::GetArray().Remove(RemoveInstance);
+			IServerCoroutinesObject::CoroutinesArr.Remove(RemoveInstance);
 		}
 	}
 
 	// 创建一个立即触发的协程，并返回该协程的句柄
 	FCoroutinesHandle operator>>(const FSimpleDelegate& ThreadDelegate)
 	{
-		IServerCoroutinesObject::GetArray().Add(MakeShareable(new FServerCoroutinesObject(ThreadDelegate)));
-		return IServerCoroutinesObject::GetArray()[IServerCoroutinesObject::GetArray().Num() - 1];
+		IServerCoroutinesObject::CoroutinesArr.Add(MakeShareable(new FServerCoroutinesObject(ThreadDelegate)));
+		return IServerCoroutinesObject::CoroutinesArr[IServerCoroutinesObject::CoroutinesArr.Num() - 1];
 	}
 
 private:

@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Base/ServerThreadTemplate.h"
-#include "DedicatedServerUtils/Thread/Interface/ServerThreadManagerInterface.h"
+#include "../Interface/ServerThreadManagerInterface.h"
 
 
 // After bind, you can set the time and how long to execute            

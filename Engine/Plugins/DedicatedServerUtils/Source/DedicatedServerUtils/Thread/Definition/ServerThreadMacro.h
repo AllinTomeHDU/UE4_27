@@ -3,7 +3,7 @@
 #include "Misc/ScopeLock.h"
 #include "Async/TaskGraphInterfaces.h"
 #include "ServerThreadType.h"
-#include "DedicatedServerUtils/Thread/Manager/Base/ServerThreadTemplate.h"
+#include "../Manager/Base/ServerThreadTemplate.h"
 
 /**
 * 基于引擎原生的 FAutoDeleteAsyncTask、FAsyncTask、FSimpleDelegate、FTaskGraphInterface 做一层 语法糖封装。

@@ -35,6 +35,7 @@ public class DedicatedServerUtils : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
+				"Sockets",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
@@ -47,7 +48,7 @@ public class DedicatedServerUtils : ModuleRules
 			}
 			);
 
-		// 如果是在项目里面想用到该内容 就把它打开
+		// 如果是在项目里面想用到该内容，就把它打开
 		// PublicDefinitions.Add("PLATFORM_PROJECT");
 		if (PublicDefinitions.Contains("PLATFORM_PROJECT"))
 		{

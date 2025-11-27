@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DedicatedServerUtils/Thread/Definition/ServerThreadType.h"
+#include "../Definition/ServerThreadType.h"
 
 
 class DEDICATEDSERVERUTILS_API IServerThreadProxy : public TSharedFromThis<IServerThreadProxy>

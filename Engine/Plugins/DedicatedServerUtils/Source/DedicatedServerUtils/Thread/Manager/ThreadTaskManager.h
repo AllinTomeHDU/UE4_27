@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Base/ServerThreadTemplate.h"
-#include "DedicatedServerUtils/Thread/Interface/ServerThreadManagerInterface.h"
+#include "../Interface/ServerThreadManagerInterface.h"
 
 
 struct DEDICATEDSERVERUTILS_API FThreadTaskManager

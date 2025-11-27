@@ -3,6 +3,8 @@
 #include "DedicatedServerUtils.h"
 
 #define LOCTEXT_NAMESPACE "FDedicatedServerUtilsModule"
+DEFINE_LOG_CATEGORY(LogDedicatedServerUtils);
+
 
 void FDedicatedServerUtilsModule::StartupModule()
 {

@@ -1,6 +1,8 @@
 #include "ServerCoroutines.h"
 
 
+TArray<TSharedPtr<IServerCoroutinesObject>> IServerCoroutinesObject::CoroutinesArr;
+
 FServerCoroutinesObject::FServerCoroutinesObject(const FSimpleDelegate& InDelegate)
 	: IServerCoroutinesObject(), SimpleDelegate(InDelegate), TotalTime(INDEX_NONE), RuningTime(0.f)
 {
