@@ -59,13 +59,18 @@ bool FNetChannelDriverUDP::Init()
 			}
 		}
 
-		if (/*!FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/!bAsynchronous)
+		//if (/*!FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/!bAsynchronous)
+		//{
+		//	if (!Socket->SetNonBlocking())
+		//	{
+		//		SocketSubsystem->DestroySocket(Socket);
+		//		return false;
+		//	}
+		//}
+		if (!Socket->SetNonBlocking())
 		{
-			if (!Socket->SetNonBlocking())
-			{
-				SocketSubsystem->DestroySocket(Socket);
-				return false;
-			}
+			SocketSubsystem->DestroySocket(Socket);
+			return false;
 		}
 
 		Connections.LocalConnection->SetSocket(Socket);
@@ -91,10 +96,10 @@ bool FNetChannelDriverUDP::Init()
 	}
 
 	// 异步线程，创建之后立马执行
-	if (/*FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/bAsynchronous)
-	{
-		FThreadManagement::Get()->GetProxy().CreateRaw(this, &FNetChannelDriverUDP::RunThread);
-	}
+	//if (/*FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/bAsynchronous)
+	//{
+	//	FThreadManagement::Get()->GetProxy().CreateRaw(this, &FNetChannelDriverUDP::RunThread);
+	//}
 
 	return true;
 }
@@ -118,10 +123,11 @@ void FNetChannelDriverUDP::Tick(float DeltaTime)
 		}
 	}
 
-	if (/*!FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/!bAsynchronous)
-	{
-		Listen();
-	}
+	//if (/*!FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/!bAsynchronous)
+	//{
+	//	Listen();
+	//}
+	Listen();
 }
 
 void FNetChannelDriverUDP::RunThread()

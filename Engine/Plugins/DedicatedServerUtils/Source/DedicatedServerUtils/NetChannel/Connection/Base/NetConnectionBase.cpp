@@ -137,11 +137,12 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 	}
 	else
 	{
-		//switch (Head.ProtocolsNumber)
-		//{
-		//default:
-		//	break;
-		//}
+		switch (Head.ProtocolsNumber)
+		{
+		case P_Debug:
+		default:
+			UpdateObject();
+		}
 	}
 }
 
@@ -163,7 +164,8 @@ void FNetConnectionBase::GetActiveChannelGUIDs(TArray<FGuid>& GUIDs)
 
 void FNetConnectionBase::LoopHeartBeat()
 {
-	if (auto Channel = GetMainChannel())
+	FNetChannelBase* Channel = GetMainChannel();
+	if (Channel->IsValid())
 	{
 		FThreadManagement::Get()->GetCoroutines().BindLambda(
 			3.f,
