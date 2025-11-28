@@ -11,7 +11,7 @@ public:
 	static FNetChannelGlobalInfo* Get();
 	static void Destroy();
 
-	void Init();
+	void Init(const FString& InPath = FPaths::ProjectDir()/TEXT("NetChannelConfig.ini"));
 	
 private:
 	FNetConfigInfo ConfigInfo;

@@ -4,8 +4,11 @@
 #include "DistributedDedicatedServer.h"
 
 #include "RequiredProgramMainCPPInclude.h"
+#include "DedicatedServerUtils/NetChannel/NetChannelGlobalInfo.h"
 #include "DedicatedServerUtils/NetChannel/NetChannelManager.h"
 #include "DedicatedServerUtils/Thread/ServerThreadManager.h"
+#include "DedicatedServerUtils/NetChannel/Channel/NetChannelBase.h"
+#include "DedicatedServerUtils/NetChannel/Test/TestController.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
@@ -16,8 +19,14 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 {
 	GEngineLoop.PreInit(ArgC, ArgV);
 
+	FNetChannelGlobalInfo::Get()->Init();
+
 	FNetChannelManager* Server = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
 	FNetChannelManager* Client = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Connect, ENetSocketType::UDP);
+
+	FNetChannelBase::SimpleControllerDelegate.BindLambda(
+		[]()->UClass* { return UTestController::StaticClass(); }
+	);
 
 	if (!Server || !Server->Init())
 	{
@@ -47,6 +56,10 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 
 		LastTime = Now;
 	}
+
+	FNetChannelManager::Destroy(Server);
+	FNetChannelManager::Destroy(Client);
+	DedicatedServerUtils::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();
 	return 0;

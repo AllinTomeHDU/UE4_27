@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 
 
-class FNetChannelIOStream
+class DEDICATEDSERVERUTILS_API FNetChannelIOStream
 {
 public:
 	TArray<uint8>& Buffer;

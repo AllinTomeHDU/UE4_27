@@ -6,7 +6,7 @@
 
 
 UCLASS(Blueprintable)
-class UNetChannelController : public UNetChannelObject
+class DEDICATEDSERVERUTILS_API UNetChannelController : public UNetChannelObject
 {
 	GENERATED_BODY()
 

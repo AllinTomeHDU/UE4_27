@@ -32,6 +32,12 @@ public:
 	void SpawnController();
 	void SpawnPlayer();
 
+	template<class T>
+	T* GetNetObject()
+	{
+		return Cast<T>(NetworkObject.Get());
+	}
+
 protected:
 	FGuid GUID;
 	TWeakPtr<FNetConnectionBase> Connection;

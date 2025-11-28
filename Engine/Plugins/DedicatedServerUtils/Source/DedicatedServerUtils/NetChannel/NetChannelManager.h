@@ -5,6 +5,7 @@
 
 class FNetConnectionBase;
 class FInternetAddr;
+class UNetChannelController;
 
 
 class DEDICATEDSERVERUTILS_API FNetChannelManager
@@ -12,8 +13,11 @@ class DEDICATEDSERVERUTILS_API FNetChannelManager
 	
 
 public:
-	static FNetChannelManager* CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType);
 	virtual ~FNetChannelManager() {};
+	static FNetChannelManager* CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType);
+	static void Destroy(FNetChannelManager* InInstance);
+
+	UNetChannelController* GetController();
 
 	virtual bool Init();
 	virtual void Tick(float DeltaTime);
@@ -38,7 +42,7 @@ protected:
 	}Connections;
 
 	ENetLinkState LinkState;
-
+	bool bAsynchronous;
 public:
 	FORCEINLINE ENetLinkState GetLinkState() const { return LinkState; }
 };

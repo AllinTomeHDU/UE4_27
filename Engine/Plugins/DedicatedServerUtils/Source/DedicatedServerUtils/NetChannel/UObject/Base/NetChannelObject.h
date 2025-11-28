@@ -11,7 +11,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FSimpleNetRecvReturnDelegate, uint32, FNetC
 
 
 UCLASS(Blueprintable)
-class UNetChannelObject : public UObject
+class DEDICATEDSERVERUTILS_API UNetChannelObject : public UObject
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,6 @@ protected:
 
 	virtual void RecvProtocol(uint32 InProtocol);
 
-private:
 	UPROPERTY()
 	ENetLinkState LinkState;
 

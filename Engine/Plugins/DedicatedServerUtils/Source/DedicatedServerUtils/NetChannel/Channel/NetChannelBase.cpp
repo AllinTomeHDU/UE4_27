@@ -5,6 +5,9 @@
 #include "../UObject/NetChannelPlayer.h"
 
 
+#if PLATFORM_WINDOWS
+#pragma optimize("",off)
+#endif
 FSimpleReturnDelegate FNetChannelBase::SimpleControllerDelegate;
 FSimpleReturnDelegate FNetChannelBase::SimplePlayerDelegate;
 
@@ -81,11 +84,7 @@ void FNetChannelBase::SpawnPlayer()
 
 UNetChannelObject* FNetChannelBase::SpawnObject(UClass* InClass)
 {
-	if (auto InObject = NewObject<UNetChannelObject>(InClass, InClass))
-	{
-		return InObject;
-	}
-	return nullptr;
+	return NewObject<UNetChannelObject>(InClass, InClass);
 }
 
 void FNetChannelBase::RegisterObject(FSimpleReturnDelegate InDelegate, UClass* InObjectClass)
@@ -118,3 +117,6 @@ void FNetChannelBase::RegisterObject(FSimpleReturnDelegate InDelegate, UClass* I
 		NetworkObject->Init();
 	}
 }
+#if PLATFORM_WINDOWS
+#pragma optimize("",on)
+#endif

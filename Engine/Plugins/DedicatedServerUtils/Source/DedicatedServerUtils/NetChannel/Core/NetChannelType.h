@@ -47,6 +47,7 @@ struct FNetConfigInfo
 		, SendDataSize(BUFFER_SIZE)
 		, MaxConnections(CONNECT_NUM)
 		, MaxChannels(CHANNEL_NUM)
+		, bAsynchronous(true)
 	{}
 
 	UPROPERTY()
@@ -69,4 +70,7 @@ struct FNetConfigInfo
 
 	UPROPERTY()
 	int32 MaxChannels;
+
+	UPROPERTY()
+	bool bAsynchronous;
 };

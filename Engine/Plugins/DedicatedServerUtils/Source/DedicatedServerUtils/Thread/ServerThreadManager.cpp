@@ -6,7 +6,7 @@ TSharedRef<FThreadManagement> DedicatedServerUtils::FThreadManagement::Get()
 {
 	if (!ThreadManagement.IsValid())
 	{
-		ThreadManagement = MakeShareable(new FThreadManagement);
+		ThreadManagement = MakeShareable(new FThreadManagement());
 	}
 	return ThreadManagement.ToSharedRef();
 }
@@ -15,7 +15,7 @@ void DedicatedServerUtils::FThreadManagement::Destroy()
 {
 	if (ThreadManagement.IsValid())
 	{
-		ThreadManagement = nullptr;
+		ThreadManagement.Reset();
 	}
 }
 

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Base/NetChannelObject.h"
-#include "NetChannelPlayer.generated.h"
+#include "../UObject/NetChannelController.h"
+#include "TestController.generated.h"
 
 
 UCLASS(Blueprintable)
-class DEDICATEDSERVERUTILS_API UNetChannelPlayer : public UNetChannelObject
+class DEDICATEDSERVERUTILS_API UTestController : public UNetChannelController
 {
 	GENERATED_BODY()
 

@@ -1,11 +1,14 @@
 #include "NetChannelManager.h"
 #include "NetChannelGlobalInfo.h"
 #include "Core/NetChannelProtocols.h"
-#include "DedicatedServerUtils/DedicatedServerUtils.h"
 #include "Driver/NetChannelDriverUDP.h"
 #include "Driver/NetChannelDriverTCP.h"
 #include "Connection/Base/NetConnectionBase.h"
+#include "UObject/NetChannelController.h"
+#include "DedicatedServerUtils/DedicatedServerUtils.h"
+#include "DedicatedServerUtils/Thread/ServerThreadManager.h"
 #include "IPAddress.h"
+using namespace DedicatedServerUtils;
 
 
 FNetChannelManager* FNetChannelManager::CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType)
@@ -19,6 +22,22 @@ FNetChannelManager* FNetChannelManager::CreateNetChannelManager(ENetLinkState In
 	}
 
 	return nullptr;
+}
+
+void FNetChannelManager::Destroy(FNetChannelManager* InInstance)
+{
+	if (InInstance)
+	{
+		InInstance->Close();
+		delete InInstance;
+		InInstance = nullptr;
+	}
+}
+
+UNetChannelController* FNetChannelManager::GetController()
+{
+	auto Channel = Connections.LocalConnection->GetMainChannel();
+	return Channel ? Channel->GetNetObject<UNetChannelController>() : nullptr;
 }
 
 bool FNetChannelManager::Init()
@@ -63,7 +82,23 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 					{
 						NETCHANNEL_PROTOCOLS_SEND(P_Challenge);
 						InConnection->SetState(ENetConnectionState::Verify);
+						InConnection->ResetHeartBeat();
 					}
+					else
+					{
+						FString ErrorInfo = FString::Printf(
+							TEXT("The server vertion is [%s], current client version is [%s], need upgrade"),
+							*FNetChannelGlobalInfo::Get()->GetInfo().Version, *RemoteVersion
+						);
+						NETCHANNEL_PROTOCOLS_SEND(P_Upgrade, ErrorInfo);
+						InConnection->Close();
+					}
+				}
+				else
+				{
+					FString ErrorInfo = FString::Printf(TEXT("the version passed by client is empty."));
+					NETCHANNEL_PROTOCOLS_SEND(P_Upgrade, ErrorInfo);
+					InConnection->Close();
 				}
 				break;
 			}
@@ -77,6 +112,12 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 					InConnection->GetMainChannel()->SetGUID(MainGUID);
 					NETCHANNEL_PROTOCOLS_SEND(P_Welcom);
 					InConnection->SetState(ENetConnectionState::Login);
+				}
+				else
+				{
+					FString ErrorInfo = TEXT("Login failure, GUID is NULL");
+					NETCHANNEL_PROTOCOLS_SEND(P_Failure, ErrorInfo);
+					InConnection->Close();
 				}
 				break;
 			}
@@ -104,6 +145,23 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			{
 				Connections.LocalConnection->SetState(ENetConnectionState::Join);
 				NETCHANNEL_PROTOCOLS_SEND(P_Join);
+				Connections.LocalConnection->LoopHeartBeat();
+				break;
+			}
+			case P_Upgrade:
+			{
+				FString ErrorInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_Upgrade, ErrorInfo);
+				UE_LOG(LogDedicatedServerUtils, Error, TEXT("Error: %s"), *ErrorInfo);
+				InConnection->Close();
+				break;
+			}
+			case P_Failure:
+			{
+				FString ErrorInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_Failure, ErrorInfo);
+				UE_LOG(LogDedicatedServerUtils, Error, TEXT("Error: %s"), *ErrorInfo);
+				InConnection->Close();
 				break;
 			}
 		}

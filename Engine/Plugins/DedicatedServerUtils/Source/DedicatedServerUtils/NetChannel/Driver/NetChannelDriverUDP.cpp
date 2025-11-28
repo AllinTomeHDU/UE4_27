@@ -1,16 +1,21 @@
 #include "NetChannelDriverUDP.h"
+#include "../NetChannelGlobalInfo.h"
+#include "../Connection/NetConnectionUDP.h"
 #include "DedicatedServerUtils/DedicatedServerUtils.h"
-#include "DedicatedServerUtils/DedicatedServerUtils.h"
-#include "DedicatedServerUtils/NetChannel/Connection/NetConnectionUDP.h"
+#include "DedicatedServerUtils/Thread/ServerThreadManager.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
+using namespace DedicatedServerUtils;
 
 
 FNetChannelDriverUDP::FNetChannelDriverUDP(const ENetLinkState InState)
 {
 	LinkState = InState;
+	bAsynchronous = LinkState == ENetLinkState::Listen;
+	bStopThread = false;
 
 	Connections.LocalConnection = MakeShareable(new FNetConnectionUDP());
+	Connections.LocalConnection->SetIsMainListen(true);
 }
 
 bool FNetChannelDriverUDP::Init()
@@ -26,32 +31,42 @@ bool FNetChannelDriverUDP::Init()
 		if (!Socket) return false;
 
 		int32 RecvSize = 0, SendSize = 0;
-		Socket->SetReceiveBufferSize(BUFFER_SIZE, RecvSize);
-		Socket->SetSendBufferSize(BUFFER_SIZE, SendSize);
+		Socket->SetReceiveBufferSize(FNetChannelGlobalInfo::Get()->GetInfo().RecvDataSize, RecvSize);
+		Socket->SetSendBufferSize(FNetChannelGlobalInfo::Get()->GetInfo().SendDataSize, SendSize);
 
 		switch (LinkState)
 		{
 			case ENetLinkState::Listen:  // 服务器
 			{
 				Connections.LocalConnection->GetAddr()->SetAnyAddress();
-				Connections.LocalConnection->GetAddr()->SetPort(45678);
+				Connections.LocalConnection->GetAddr()->SetPort(FNetChannelGlobalInfo::Get()->GetInfo().Port);
 
 				// 若端口绑定失败，则根据端口增量重新设置端口，直至设置成功
 				int32 BindPort = SocketSubsystem->BindNextPort(Socket, *Connections.LocalConnection->GetAddr(), 1, 1);
-				if (BindPort == 0) return false;
+				if (BindPort == 0)
+				{
+					SocketSubsystem->DestroySocket(Socket);
+					return false;
+				}
 				break;
 			}
 			case ENetLinkState::Connect:  // 客户端
 			{
 				bool bBindAddr = false;
-				Connections.LocalConnection->GetAddr()->SetIp(TEXT("127.0.0.7"), bBindAddr);
-				Connections.LocalConnection->GetAddr()->SetPort(45678);
+				Connections.LocalConnection->GetAddr()->SetIp(*FNetChannelGlobalInfo::Get()->GetInfo().URL, bBindAddr);
+				Connections.LocalConnection->GetAddr()->SetPort(FNetChannelGlobalInfo::Get()->GetInfo().Port);
 				break;
 			}
-
 		}
 
-		if (!Socket->SetNonBlocking()) return false;
+		if (/*!FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/!bAsynchronous)
+		{
+			if (!Socket->SetNonBlocking())
+			{
+				SocketSubsystem->DestroySocket(Socket);
+				return false;
+			}
+		}
 
 		Connections.LocalConnection->SetSocket(Socket);
 		Connections.LocalConnection->SetLinkState(LinkState);
@@ -59,7 +74,7 @@ bool FNetChannelDriverUDP::Init()
 
 		if (LinkState == ENetLinkState::Listen)
 		{
-			for (int i = 0; i < CONNECT_NUM; ++i)	// 预分配
+			for (int i = 0; i < FNetChannelGlobalInfo::Get()->GetInfo().MaxConnections; ++i)	// 预分配
 			{
 				Connections.RemoteConnections.Add(MakeShareable(new FNetConnectionUDP()));
 				TSharedPtr<FNetConnectionBase> NewConnection = Connections.RemoteConnections.Last();
@@ -73,6 +88,12 @@ bool FNetChannelDriverUDP::Init()
 		{
 			Connections.LocalConnection->Verify();
 		}
+	}
+
+	// 异步线程，创建之后立马执行
+	if (/*FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/bAsynchronous)
+	{
+		FThreadManagement::Get()->GetProxy().CreateRaw(this, &FNetChannelDriverUDP::RunThread);
 	}
 
 	return true;
@@ -97,6 +118,22 @@ void FNetChannelDriverUDP::Tick(float DeltaTime)
 		}
 	}
 
+	if (/*!FNetChannelGlobalInfo::Get()->GetInfo().bAsynchronous*/!bAsynchronous)
+	{
+		Listen();
+	}
+}
+
+void FNetChannelDriverUDP::RunThread()
+{
+	while (!bStopThread)
+	{
+		Listen();
+	}
+}
+
+void FNetChannelDriverUDP::Listen()
+{
 	uint8 Data[BUFFER_SIZE] = { 0 };
 	int32 BytesRead = 0;
 	auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem();
@@ -151,4 +188,5 @@ void FNetChannelDriverUDP::Close()
 	{
 		Subsystem->DestroySocket(Socket);
 	}
+	bStopThread = true;
 }

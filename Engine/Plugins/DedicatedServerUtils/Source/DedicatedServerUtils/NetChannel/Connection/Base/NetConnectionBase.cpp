@@ -2,16 +2,23 @@
 #include "../../NetChannelGlobalInfo.h"
 #include "../../Core/NetChannelType.h"
 #include "../../Core/NetChannelProtocols.h"
+#include "DedicatedServerUtils/Thread/ServerThreadManager.h"
 #include "SocketSubsystem.h"
 #include "Sockets.h"
+using namespace DedicatedServerUtils;
 
 
+#if PLATFORM_WINDOWS
+#pragma optimize("",off)
+#endif
 FNetConnectionBase::FNetConnectionBase()
 	: Socket(nullptr)
-	, Sate(ENetConnectionState::UnInit)
+	, State(ENetConnectionState::UnInit)
+	, LastTime(0.0)
+	, bMainListen(false)
 	, bLock(false)
 {
-	Channels.SetNum(CHANNEL_NUM);	// 预分配
+	Channels.SetNum(FNetChannelGlobalInfo::Get()->GetInfo().MaxChannels);	// 预分配
 
 	if (auto Subsystem = GetSocketSubsystem())
 	{
@@ -28,7 +35,7 @@ void FNetConnectionBase::Send(const TArray<uint8>& InData)
 {
 }
 
-void FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8> InData)
+void FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
 {
 	for (auto& Tmp : Channels)
 	{
@@ -62,6 +69,21 @@ void FNetConnectionBase::Tick(float DeltaTime)
 			Tmp.Tick(DeltaTime);
 		}
 	}
+
+	if (!bMainListen && LinkState == ENetLinkState::Listen)
+	{
+		CheckTimeOut();
+	}
+}
+
+void FNetConnectionBase::Close()
+{
+	for (auto& Tmp : Channels)
+	{
+		Tmp.Close();
+	}
+	State = ENetConnectionState::UnInit;
+	UnLock();
 }
 
 void FNetConnectionBase::Verify()
@@ -78,14 +100,48 @@ void FNetConnectionBase::Verify()
 void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 {
 	FNetBunchHead Head = *(FNetBunchHead*)InData;
-	if (auto Channel = GetMainChannel())
+
+	// 更新上层业务
+	auto UpdateObject = [&]()
 	{
-		if (BytesNum > sizeof(FNetBunchHead))
+		if (auto Channel = GetMainChannel())
 		{
-			TArray<uint8> InNewData(InData, BytesNum);
-			Channel->AddMsg(InNewData);
+			if (BytesNum > sizeof(FNetBunchHead))
+			{
+				TArray<uint8> InNewData(InData, BytesNum);
+				Channel->AddMsg(InNewData);
+			}
+			Channel->RecvProtocol(Head.ProtocolsNumber);
 		}
-		Channel->RecvProtocol(Head.ProtocolsNumber);
+	};
+
+	// 心跳协议
+	auto HeartBeat = [&]()
+	{
+		if (auto Channel = GetMainChannel())
+		{
+			NETCHANNEL_PROTOCOLS_SEND(P_HeartBeat);
+		}
+	};
+
+	if (GetLinkState() == ENetLinkState::Listen)
+	{
+		switch (Head.ProtocolsNumber)
+		{
+		case P_HeartBeat:
+			ResetHeartBeat();
+			break;
+		default:
+			UpdateObject();
+		}
+	}
+	else
+	{
+		//switch (Head.ProtocolsNumber)
+		//{
+		//default:
+		//	break;
+		//}
 	}
 }
 
@@ -96,14 +152,45 @@ FNetChannelBase* FNetConnectionBase::GetMainChannel()
 
 void FNetConnectionBase::GetActiveChannelGUIDs(TArray<FGuid>& GUIDs)
 {
-	for (auto& Tmp : Channels)
+	for (int i = 1; i < Channels.Num(); ++i)
 	{
-		if (Tmp.IsValid())
+		if (Channels[i].IsValid())
 		{
-			GUIDs.Add(Tmp.GetGUID());
+			GUIDs.Add(Channels[i].GetGUID());
 		}
 	}
 }
 
+void FNetConnectionBase::LoopHeartBeat()
+{
+	if (auto Channel = GetMainChannel())
+	{
+		FThreadManagement::Get()->GetCoroutines().BindLambda(
+			3.f,
+			[&]() 
+			{ 
+				NETCHANNEL_PROTOCOLS_SEND(P_HeartBeat); 
+				LoopHeartBeat();
+			}
+		);
+	}
+}
+
+void FNetConnectionBase::ResetHeartBeat()
+{
+	LastTime = FPlatformTime::Seconds();
+}
+
+void FNetConnectionBase::CheckTimeOut()
+{
+	double CurrentTime = FPlatformTime::Seconds();
+	if (CurrentTime - LastTime > 20.0)
+	{
+		Close();
+	}
+}
+#if PLATFORM_WINDOWS
+#pragma optimize("",on)
+#endif
 
 
