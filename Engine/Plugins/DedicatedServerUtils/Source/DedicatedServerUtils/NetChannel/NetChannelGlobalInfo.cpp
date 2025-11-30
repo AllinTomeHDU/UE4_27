@@ -46,7 +46,8 @@ void FNetChannelGlobalInfo::Init(const FString& InPath)
 		ConfigInfo.SendDataSize = FCString::Atoi(*InConfigContent["SendDataSize"]);
 		ConfigInfo.MaxConnections = FCString::Atoi(*InConfigContent["MaxConnections"]);
 		ConfigInfo.MaxChannels = FCString::Atoi(*InConfigContent["MaxChannels"]);
-		ConfigInfo.bAsynchronous = (bool)FCString::Atoi(*InConfigContent["bAsynchronous"]);
+		ConfigInfo.HeartBeatTimeInterval = FCString::Atof(*InConfigContent["HeartBeatTimeInterval"]);
+		ConfigInfo.HeatBeatTimeOutTime = FCString::Atof(*InConfigContent["HeatBeatTimeOutTime"]);
 	}
 	else
 	{
@@ -57,7 +58,8 @@ void FNetChannelGlobalInfo::Init(const FString& InPath)
 		Content.Add(FString::Printf(TEXT("SendDataSize=%i"), ConfigInfo.SendDataSize));
 		Content.Add(FString::Printf(TEXT("MaxConnections=%i"), ConfigInfo.MaxConnections));
 		Content.Add(FString::Printf(TEXT("MaxChannels=%i"), ConfigInfo.MaxChannels));
-		Content.Add(FString::Printf(TEXT("bAsynchronous=%i"), ConfigInfo.bAsynchronous));
+		Content.Add(FString::Printf(TEXT("HeartBeatTimeInterval=%f"), ConfigInfo.HeartBeatTimeInterval));
+		Content.Add(FString::Printf(TEXT("HeatBeatTimeOutTime=%f"), ConfigInfo.HeatBeatTimeOutTime));
 		FFileHelper::SaveStringArrayToFile(Content, *InPath);
 	}
 }

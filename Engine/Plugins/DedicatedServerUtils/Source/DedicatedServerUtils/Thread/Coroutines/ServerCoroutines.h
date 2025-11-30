@@ -6,7 +6,8 @@
 
 struct DEDICATEDSERVERUTILS_API FServerCoroutinesRequest
 {
-	FServerCoroutinesRequest(float InIntervalTime) : bCompleteRequest(false), IntervalTime(InIntervalTime)
+	FServerCoroutinesRequest(float InIntervalTime) 
+		: bCompleteRequest(false), IntervalTime(InIntervalTime)
 	{}
 
 	bool bCompleteRequest;
@@ -31,12 +32,6 @@ public:
 
 protected:
 	virtual void Update(FServerCoroutinesRequest& CoroutinesRequest) = 0;
-
-	//static TArray<TSharedPtr<IServerCoroutinesObject>>& GetArray()
-	//{
-	//	static TArray<TSharedPtr<IServerCoroutinesObject>> Instance;
-	//	return Instance;
-	//}
 
 protected:
 	uint8 bAwaken : 1;

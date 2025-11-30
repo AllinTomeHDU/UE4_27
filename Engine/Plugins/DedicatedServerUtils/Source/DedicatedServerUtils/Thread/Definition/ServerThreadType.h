@@ -37,10 +37,10 @@ struct DEDICATEDSERVERUTILS_API FServerThreadHandle : public TSharedFromThis<FSe
 
 	bool operator==(const FServerThreadHandle& Other)
 	{
-		return this->GUIDTypeA == Other.GUIDTypeA 
-			&& this->GUIDTypeB == Other.GUIDTypeB 
-			&& this->GUIDTypeC == Other.GUIDTypeC 
-			&& this->GUIDTypeD == Other.GUIDTypeD;
+		return GUIDTypeA == Other.GUIDTypeA 
+			&& GUIDTypeB == Other.GUIDTypeB 
+			&& GUIDTypeC == Other.GUIDTypeC 
+			&& GUIDTypeD == Other.GUIDTypeD;
 	}
 
 protected:

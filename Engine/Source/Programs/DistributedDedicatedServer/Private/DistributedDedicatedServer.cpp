@@ -9,57 +9,66 @@
 #include "DedicatedServerUtils/Thread/ServerThreadManager.h"
 #include "DedicatedServerUtils/NetChannel/Channel/NetChannelBase.h"
 #include "DedicatedServerUtils/NetChannel/Test/TestController.h"
+#include "DedicatedServerUtils/Database/DatabaseBPLibrary.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
 
 IMPLEMENT_APPLICATION(DistributedDedicatedServer, "DistributedDedicatedServer");
 
+static int32 Num = 0;
+
 INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 {
 	GEngineLoop.PreInit(ArgC, ArgV);
 
-	FNetChannelGlobalInfo::Get()->Init();
+	//UDatabaseBPLibrary::TestMySQL_1();
+	UDatabaseBPLibrary::TestMySQL_2();
+	system("pause");
 
-	FNetChannelManager* Server = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
-	FNetChannelManager* Client = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Connect, ENetSocketType::UDP);
+	//FNetChannelGlobalInfo::Get()->Init();
 
-	FNetChannelBase::SimpleControllerDelegate.BindLambda(
-		[]()->UClass* { return UTestController::StaticClass(); }
-	);
+	//FNetChannelManager* Server = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
+	//FNetChannelManager* Client = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Connect, ENetSocketType::UDP);
 
-	if (!Server || !Server->Init())
-	{
-		delete Server;
-		UE_LOG(LogDDServer, Error, TEXT("Server Create Failed"));
-		return -1;
-	}
-	if (!Client || !Client->Init())
-	{
-		delete Client;
-		delete Server;
-		UE_LOG(LogDDServer, Error, TEXT("Client Create Failed"));
-		return -1;
-	}
+	//FNetChannelBase::SimpleControllerDelegate.BindLambda(
+	//	[]()->UClass* { return UTestController::StaticClass(); }
+	//);
 
-	double LastTime = FPlatformTime::Seconds();
-	while (!IsEngineExitRequested())
-	{
-		FPlatformProcess::Sleep(0.03f);
-		double Now = FPlatformTime::Seconds();
-		float DeltaTime = Now - LastTime;
+	//if (!Server || !Server->Init())
+	//{
+	//	delete Server;
+	//	UE_LOG(LogDDServer, Error, TEXT("Server Create Failed"));
+	//	return -1;
+	//}
+	//if (!Client || !Client->Init())
+	//{
+	//	delete Client;
+	//	delete Server;
+	//	UE_LOG(LogDDServer, Error, TEXT("Client Create Failed"));
+	//	return -1;
+	//}
 
-		DedicatedServerUtils::FThreadManagement::Get()->Tick(DeltaTime);
+	//double LastTime = FPlatformTime::Seconds();
+	//while (!IsEngineExitRequested())
+	//{
+	//	FPlatformProcess::Sleep(0.03f);
+	//	double Now = FPlatformTime::Seconds();
+	//	float DeltaTime = Now - LastTime;
 
-		Server->Tick(DeltaTime);
-		Client->Tick(DeltaTime);
+	//	DedicatedServerUtils::FThreadManagement::Get()->Tick(DeltaTime);
 
-		LastTime = Now;
-	}
+	//	Server->Tick(DeltaTime);
+	//	Client->Tick(DeltaTime);
 
-	FNetChannelManager::Destroy(Server);
-	FNetChannelManager::Destroy(Client);
-	DedicatedServerUtils::FThreadManagement::Destroy();
+	//	LastTime = Now;
+
+	//	//UE_LOG(LogDDServer, Display, TEXT("TickNum:%d"), Num++);
+	//}
+
+	//FNetChannelManager::Destroy(Server);
+	//FNetChannelManager::Destroy(Client);
+	//DedicatedServerUtils::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();
 	return 0;

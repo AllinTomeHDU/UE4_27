@@ -52,4 +52,5 @@ public:
 	FORCEINLINE const FGuid& GetGUID() const { return GUID; }
 	FORCEINLINE void SetGUID(const FGuid& NewGUID) { GUID = NewGUID; }
 	FORCEINLINE void SetConnection(TWeakPtr<FNetConnectionBase> InConnection) { Connection = InConnection; }
+	FORCEINLINE TSharedPtr<FNetConnectionBase> GetConnection() const { return Connection.Pin(); }
 };

@@ -4,13 +4,16 @@
 int32 FServerThreadRunnable::ThreadCount = 0;
 
 FServerThreadRunnable::FServerThreadRunnable(bool bInSuspendAtFirst)
-	: IServerThreadProxy(), StopTaskCounter(0), bSuspendAtFirst(bInSuspendAtFirst), Thread(nullptr)
+	: IServerThreadProxy()
+	, StopTaskCounter(0)
+	, bSuspendAtFirst(bInSuspendAtFirst)
+	, Thread(nullptr)
 {
 }
 
 FServerThreadRunnable::~FServerThreadRunnable()
 {
-	if (Thread != NULL)
+	if (Thread != nullptr)
 	{
 		delete Thread;
 		Thread = nullptr;
@@ -19,8 +22,9 @@ FServerThreadRunnable::~FServerThreadRunnable()
 
 void FServerThreadRunnable::CreateSafeThread()
 {
-	RunnableName = *FString::Printf(TEXT("ServerThread-%i"), ThreadCount++);
+	RunnableName = *FString::Printf(TEXT("ServerThread-%i"), ThreadCount);
 	Thread = FRunnableThread::Create(this, *RunnableName.ToString(), 0, TPri_BelowNormal);
+	ThreadCount++;
 }
 
 void FServerThreadRunnable::WakeupThread()

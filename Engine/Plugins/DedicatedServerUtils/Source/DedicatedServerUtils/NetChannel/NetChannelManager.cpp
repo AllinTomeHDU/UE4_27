@@ -145,7 +145,7 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			{
 				Connections.LocalConnection->SetState(ENetConnectionState::Join);
 				NETCHANNEL_PROTOCOLS_SEND(P_Join);
-				//Connections.LocalConnection->LoopHeartBeat();
+				Connections.LocalConnection->SetLoopHeartBeat(true);
 				break;
 			}
 			case P_Upgrade:

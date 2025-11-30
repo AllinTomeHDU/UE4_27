@@ -11,7 +11,7 @@
 
 #define DDD(...) __VA_ARGS__
 
-#define MUTEX_LOCL FScopeLock ScopeLock(&Mutex) 
+#define MUTEX_LOCK FScopeLock ScopeLock(&Mutex) 
 
 #define USE_UE_THREAD_POOL_ASYNCTASK(ThreadDelegate) \
 (new FAutoDeleteAsyncTask<FServerThreadAbandonable>(ThreadDelegate))->StartBackgroundTask()

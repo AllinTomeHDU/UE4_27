@@ -12,11 +12,11 @@ void UTestController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetLinkState() == ENetLinkState::Connect)
-	{
-		FString Content = TEXT("Hello, i'm client!");
-		NETCHANNEL_PROTOCOLS_SEND(P_Test, Content);
-	}
+	//if (GetLinkState() == ENetLinkState::Connect)
+	//{
+	//	FString Content = TEXT("Hello, i'm client!");
+	//	NETCHANNEL_PROTOCOLS_SEND(P_Test, Content);
+	//}
 }
 
 void UTestController::Close()

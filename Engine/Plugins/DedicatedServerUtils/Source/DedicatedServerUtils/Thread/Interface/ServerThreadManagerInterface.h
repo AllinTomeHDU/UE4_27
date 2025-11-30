@@ -8,6 +8,9 @@
 #include "../Runnable/ServerThreadRunnableProxy.h"
 #include "../Coroutines/ServerCoroutines.h"
 
+#ifdef PLATFORM_PROJECT
+#include "Engine/StreamableManager.h"
+#endif
 
 /**
 * 协程池容器：负责所有协程对象的生命周期管理、时间推进与任务创建。
@@ -16,7 +19,8 @@
 class ICoroutinesContainer
 {
 public:
-	ICoroutinesContainer() : TmpTotalTime(0.f) {}
+	ICoroutinesContainer() : TmpTotalTime(0.f) 
+	{}
 
 	virtual ~ICoroutinesContainer()
 	{
@@ -107,7 +111,7 @@ public:
 	// 向容器内添加一个新的线程代理
 	IThreadProxyContainer& operator<<(const TSharedPtr<IServerThreadProxy>& ThreadProxy)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		ThreadProxy->CreateSafeThread();
 		this->Add(ThreadProxy);
 		return *this;
@@ -118,7 +122,7 @@ public:
 	{
 		TWeakPtr<FServerThreadHandle> ThreadHandle = nullptr;
 		{
-			MUTEX_LOCL;
+			MUTEX_LOCK;
 			for (auto& Tmp : *this)
 			{
 				if (Tmp->IsSuspend() && !Tmp->GetThreadDelegate().IsBound())
@@ -145,7 +149,7 @@ public:
 	{
 		TWeakPtr<FServerThreadHandle> ThreadHandle = nullptr;
 		{
-			MUTEX_LOCL;
+			MUTEX_LOCK;
 			for (auto& Tmp : *this)
 			{
 				if (Tmp->IsSuspend() && !Tmp->GetThreadDelegate().IsBound())
@@ -166,7 +170,7 @@ public:
 	// 通过线程句柄获取线程对象（反查机制）
 	TSharedPtr<IServerThreadProxy> operator>>(const TWeakPtr<FServerThreadHandle>& Handle)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		for (auto& Tmp : *this)
 		{
 			if (Tmp->GetThreadHandle() == Handle)
@@ -174,7 +178,7 @@ public:
 				return Tmp;
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 };
 #pragma endregion
@@ -185,7 +189,9 @@ public:
 */
 #pragma region Thread Task Container
 class IThreadTaskContainer
-	: public TQueue<FSimpleDelegate>, public TArray<TSharedPtr<IServerThreadProxy>>, public IServerThreadContainer
+	: public TQueue<FSimpleDelegate>
+	, public TArray<TSharedPtr<IServerThreadProxy>>
+	, public IServerThreadContainer
 {
 protected:
 	typedef TArray<TSharedPtr<IServerThreadProxy>> TProxyArray;
@@ -195,21 +201,21 @@ public:
 	// 将一个委托推入任务队列中，不立即执行（异步任务推送逻辑）
 	void operator<<(const FSimpleDelegate& ThreadProxy)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		this->Enqueue(ThreadProxy);
 	}
 
 	// 从队列中取出一个任务，线程自己取任务（pull模式）
 	bool operator<<=(FSimpleDelegate& ThreadProxy)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		return this->Dequeue(ThreadProxy);
 	}
 
 	// 向容器中添加一个线程代理对象，相当于“增添工人”
 	IThreadTaskContainer& operator<<(const TSharedPtr<IServerThreadProxy>& ThreadProxy)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		this->Add(ThreadProxy);
 		ThreadProxy->CreateSafeThread();
 		return *this;
@@ -220,7 +226,7 @@ public:
 	{
 		bool bSuccessful = false;
 		{
-			MUTEX_LOCL;
+			MUTEX_LOCK;
 			for (auto& Tmp : *this)
 			{
 				if (Tmp->IsSuspend() && !Tmp->GetThreadDelegate().IsBound())
@@ -251,7 +257,7 @@ protected:
 	// 把任务派发到游戏线程（主线程）
 	FGraphEventRef operator<<(const FSimpleDelegate& ThreadDelegate)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		return FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(
 			ThreadDelegate, TStatId(), nullptr, ENamedThreads::GameThread);
 	}
@@ -259,7 +265,7 @@ protected:
 	// 把任务派发到任意线程（工作线程）
 	FGraphEventRef operator>>(const FSimpleDelegate& ThreadDelegate)
 	{
-		MUTEX_LOCL;
+		MUTEX_LOCK;
 		return FSimpleDelegateGraphTask::CreateAndDispatchWhenReady(
 			ThreadDelegate, TStatId(), nullptr, ENamedThreads::AnyThread);
 	}
@@ -289,3 +295,44 @@ class IThreadAbandonableContainer : public IServerThreadContainer
 	}
 };
 #pragma endregion
+
+
+/**
+* 资源流式加载的抽象接口类
+*/
+#pragma region Streamable Container
+#ifdef PLATFORM_PROJECT
+class IStreamableContainer
+{
+public:
+	virtual ~IStreamableContainer() {}
+
+	// 设置资源路径
+	IStreamableContainer& operator>>(const TArray<FSoftObjectPath>& InObjectPath)
+	{
+		SetObjectPath(InObjectPath);
+		return *this;
+	}
+
+	// 异步加载
+	TSharedPtr<struct FStreamableHandle> operator>>(const FSimpleDelegate& ThreadDelegate)
+	{
+		return GetStreamableManager()->RequestAsyncLoad(GetObjectPath(), ThreadDelegate);
+	}
+
+	// 同步加载
+	TSharedPtr<struct FStreamableHandle> operator<<(const TArray<FSoftObjectPath>& InObjectPath)
+	{
+		return GetStreamableManager()->RequestSyncLoad(InObjectPath);
+	}
+
+protected:
+	virtual void SetObjectPath(const TArray<FSoftObjectPath>& InObjectPath) = 0;
+	virtual TArray<FSoftObjectPath>& GetObjectPath() = 0;
+
+	virtual FStreamableManager* GetStreamableManager() = 0;
+};
+#endif
+#pragma endregion
+
+

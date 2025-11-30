@@ -47,7 +47,8 @@ struct FNetConfigInfo
 		, SendDataSize(BUFFER_SIZE)
 		, MaxConnections(CONNECT_NUM)
 		, MaxChannels(CHANNEL_NUM)
-		, bAsynchronous(true)
+		, HeartBeatTimeInterval(5.f)
+		, HeatBeatTimeOutTime(20.f)
 	{}
 
 	UPROPERTY()
@@ -72,5 +73,8 @@ struct FNetConfigInfo
 	int32 MaxChannels;
 
 	UPROPERTY()
-	bool bAsynchronous;
+	float HeartBeatTimeInterval;
+
+	UPROPERTY()
+	float HeatBeatTimeOutTime;
 };

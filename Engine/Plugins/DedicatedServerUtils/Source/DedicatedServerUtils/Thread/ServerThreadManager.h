@@ -10,6 +10,10 @@
 #include "Definition/ServerThreadType.h"
 #include "Definition/ServerThreadMacro.h"
 
+#ifdef PLATFORM_PROJECT
+#include "Tickable.h"
+#endif
+
 
 namespace DedicatedServerUtils
 {
@@ -17,12 +21,20 @@ namespace DedicatedServerUtils
 	/**
 	* 全局线程管理系统（单例模式）
 	*/
-	class DEDICATEDSERVERUTILS_API FThreadManagement : public TSharedFromThis<FThreadManagement>
+	class DEDICATEDSERVERUTILS_API FThreadManagement 
+		: public TSharedFromThis<FThreadManagement>
+#ifdef PLATFORM_PROJECT
+		, public FTickableGameObject
+#endif
 	{
 	public:
 		virtual ~FThreadManagement() {}
 
 		static TSharedRef<FThreadManagement> Get();
+
+#ifdef PLATFORM_PROJECT
+		static FResourceLoadingManage& GetResourceLoading() { return Get()->ResourceLoadingManage; }
+#endif
 
 	public:
 		static FCoroutinesManager&		  GetCoroutines()  { return Get()->CoroutinesManager; }
@@ -30,6 +42,9 @@ namespace DedicatedServerUtils
 		static FThreadTaskManager&		  GetTask()		   { return Get()->ThreadTaskManager; }
 		static FThreadGraphManager&		  GetGraph()	   { return Get()->ThreadGraphManager; }
 		static FThreadAbandonableManager& GetAbandonable() { return Get()->ThreadAbandonableManager; }
+#ifdef PLATFORM_PROJECT
+		static FResourceLoadingManage& GetResourceLoading() { return Get()->ResourceLoadingManage; }
+#endif
 
 		static void Destroy();
 
@@ -44,6 +59,9 @@ namespace DedicatedServerUtils
 		FThreadTaskManager		  ThreadTaskManager;
 		FThreadGraphManager		  ThreadGraphManager;
 		FThreadAbandonableManager ThreadAbandonableManager;
+#ifdef PLATFORM_PROJECT
+		FResourceLoadingManage ResourceLoadingManage;
+#endif
 
 	private:
 		static TSharedPtr<FThreadManagement> ThreadManagement;

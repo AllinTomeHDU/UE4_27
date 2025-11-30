@@ -36,7 +36,7 @@ struct DEDICATEDSERVERUTILS_API FThreadTaskManager
 	{
 		TSharedPtr<IServerThreadProxy> ThreadProxy = nullptr;
 		{
-			MUTEX_LOCL;
+			MUTEX_LOCK;
 			for (auto& Tmp : *this)
 			{
 				if (Tmp->IsSuspend())
@@ -53,7 +53,7 @@ struct DEDICATEDSERVERUTILS_API FThreadTaskManager
 				FSimpleDelegate SimpleDelegate;
 				if (*this <<= SimpleDelegate)
 				{
-					MUTEX_LOCL;
+					MUTEX_LOCK;
 					ThreadProxy->GetThreadDelegate() = SimpleDelegate;
 					ThreadProxy->WakeupThread();
 				}

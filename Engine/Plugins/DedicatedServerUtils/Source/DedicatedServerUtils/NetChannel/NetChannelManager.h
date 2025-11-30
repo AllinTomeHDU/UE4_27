@@ -3,15 +3,20 @@
 #include "CoreMinimal.h"
 #include "Core/NetChannelType.h"
 
+#ifdef PLATFORM_PROJECT
+#include "Tickable.h"
+#endif
+
 class FNetConnectionBase;
 class FInternetAddr;
 class UNetChannelController;
 
 
 class DEDICATEDSERVERUTILS_API FNetChannelManager
+#ifdef PLATFORM_PROJECT
+	: public FTickableGameObject
+#endif
 {
-	
-
 public:
 	virtual ~FNetChannelManager() {};
 	static FNetChannelManager* CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType);

@@ -31,7 +31,7 @@ public:
 	FNetChannelBase* GetMainChannel();
 	void GetActiveChannelGUIDs(TArray<FGuid>& GUIDs);
 
-	void LoopHeartBeat();
+	void SendHeatBeat();
 	void ResetHeartBeat();
 	void CheckTimeOut();
 
@@ -43,8 +43,12 @@ protected:
 	ENetLinkState LinkState;
 	ENetConnectionState State;
 
-	double LastTime;
 	uint8 bMainListen : 1;
+
+	float HeartBeatWaitTime;
+	float LastHeartBeatTime;
+	uint8 bLoopHeartBeat : 1;
+
 	uint8 bLock : 1;
 
 public:
@@ -58,6 +62,8 @@ public:
 
 	FORCEINLINE const bool GetIsMainListen() const { return bMainListen; }
 	FORCEINLINE void SetIsMainListen(const bool bIsMain) { bMainListen = bIsMain; }
+
+	FORCEINLINE void SetLoopHeartBeat(const bool bLoop) { bLoopHeartBeat = bLoop; }
 
 	FORCEINLINE void Lock() { bLock = true; }
 	FORCEINLINE void UnLock() { bLock = false; }

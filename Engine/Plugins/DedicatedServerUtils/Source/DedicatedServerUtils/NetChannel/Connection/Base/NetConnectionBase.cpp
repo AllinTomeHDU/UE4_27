@@ -14,8 +14,10 @@ using namespace DedicatedServerUtils;
 FNetConnectionBase::FNetConnectionBase()
 	: Socket(nullptr)
 	, State(ENetConnectionState::UnInit)
-	, LastTime(0.0)
 	, bMainListen(false)
+	, HeartBeatWaitTime(0.f)
+	, LastHeartBeatTime(0.f)
+	, bLoopHeartBeat(false)
 	, bLock(false)
 {
 	Channels.SetNum(FNetChannelGlobalInfo::Get()->GetInfo().MaxChannels);	// 预分配
@@ -70,9 +72,25 @@ void FNetConnectionBase::Tick(float DeltaTime)
 		}
 	}
 
-	if (!bMainListen && LinkState == ENetLinkState::Listen)
+	// 心跳由客户端发送，服务端检测
+	if (LinkState == ENetLinkState::Listen)
 	{
-		CheckTimeOut();
+		if (!bMainListen)
+		{
+			CheckTimeOut();	// 服务器远端连接检查心跳
+		}
+	}
+	else
+	{
+		if (bLoopHeartBeat)
+		{
+			HeartBeatWaitTime += DeltaTime;
+			if (HeartBeatWaitTime > FNetChannelGlobalInfo::Get()->GetInfo().HeartBeatTimeInterval)
+			{
+				HeartBeatWaitTime = 0.f;
+				SendHeatBeat();
+			}
+		}
 	}
 }
 
@@ -83,6 +101,8 @@ void FNetConnectionBase::Close()
 		Tmp.Close();
 	}
 	State = ENetConnectionState::UnInit;
+	bLoopHeartBeat = false;
+	HeartBeatWaitTime = 0.f;
 	UnLock();
 }
 
@@ -94,6 +114,7 @@ void FNetConnectionBase::Verify()
 
 		NETCHANNEL_PROTOCOLS_SEND(P_Hello, Version);
 		SetState(ENetConnectionState::Verify);
+		ResetHeartBeat();
 	}
 }
 
@@ -115,21 +136,16 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 		}
 	};
 
-	// 心跳协议
-	auto HeartBeat = [&]()
-	{
-		if (auto Channel = GetMainChannel())
-		{
-			NETCHANNEL_PROTOCOLS_SEND(P_HeartBeat);
-		}
-	};
-
 	if (GetLinkState() == ENetLinkState::Listen)
 	{
 		switch (Head.ProtocolsNumber)
 		{
 		case P_HeartBeat:
 			ResetHeartBeat();
+			UE_LOG(LogTemp, Display, TEXT("Recv Heat Beat"));
+			break;
+		case P_Close:
+			Close();
 			break;
 		default:
 			UpdateObject();
@@ -162,33 +178,30 @@ void FNetConnectionBase::GetActiveChannelGUIDs(TArray<FGuid>& GUIDs)
 	}
 }
 
-void FNetConnectionBase::LoopHeartBeat()
+void FNetConnectionBase::SendHeatBeat()
 {
-	FNetChannelBase* Channel = GetMainChannel();
-	if (Channel->IsValid())
+	if (auto Channel = GetMainChannel())
 	{
-		FThreadManagement::Get()->GetCoroutines().BindLambda(
-			3.f,
-			[&]() 
-			{ 
-				NETCHANNEL_PROTOCOLS_SEND(P_HeartBeat); 
-				LoopHeartBeat();
-			}
-		);
+		if (Channel->IsValid())
+		{
+			NETCHANNEL_PROTOCOLS_SEND(P_HeartBeat);
+			UE_LOG(LogTemp, Display, TEXT("Send Heat Beat"));
+		}
 	}
 }
 
 void FNetConnectionBase::ResetHeartBeat()
 {
-	LastTime = FPlatformTime::Seconds();
+	LastHeartBeatTime = FPlatformTime::Seconds();
 }
 
 void FNetConnectionBase::CheckTimeOut()
 {
 	double CurrentTime = FPlatformTime::Seconds();
-	if (CurrentTime - LastTime > 20.0)
+	if (CurrentTime - LastHeartBeatTime > FNetChannelGlobalInfo::Get()->GetInfo().HeatBeatTimeOutTime)
 	{
 		Close();
+		UE_LOG(LogTemp, Display, TEXT("Connection timeout..."));
 	}
 }
 #if PLATFORM_WINDOWS

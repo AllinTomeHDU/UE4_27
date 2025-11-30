@@ -9,8 +9,7 @@ class FServerThreadTemplateBase : public FTask
 {
 public:
 	FServerThreadTemplateBase() : FTask()
-	{
-	}
+	{}
 
 	template<class UserClass, typename... VarTypes>
 	ReturnType CreateRaw(UserClass* TargetClass, typename TMemFunPtrType<false, UserClass, void(VarTypes...)>::Type InMethod, VarTypes... Vars)
@@ -48,8 +47,7 @@ class FServerThreadTemplate : public FServerThreadTemplateBase<FTask, ReturnType
 {
 public:
 	FServerThreadTemplate() : FServerThreadTemplateBase<FTask, ReturnType>()
-	{
-	}
+	{}
 
 	template<class UserClass, typename... VarTypes>
 	ReturnType BindRaw(UserClass* TargetClass, typename TMemFunPtrType<false, UserClass, void(VarTypes...)>::Type InMethod, VarTypes... Vars)
