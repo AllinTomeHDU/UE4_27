@@ -9,7 +9,7 @@
 #include "DedicatedServerUtils/Thread/ServerThreadManager.h"
 #include "DedicatedServerUtils/NetChannel/Channel/NetChannelBase.h"
 #include "DedicatedServerUtils/NetChannel/Test/TestController.h"
-#include "DedicatedServerUtils/Database/DatabaseBPLibrary.h"
+#include "DedicatedServerUtils/Database/Example/MySQL_Example.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
@@ -21,10 +21,6 @@ static int32 Num = 0;
 INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 {
 	GEngineLoop.PreInit(ArgC, ArgV);
-
-	//UDatabaseBPLibrary::TestMySQL_1();
-	UDatabaseBPLibrary::TestMySQL_2();
-	system("pause");
 
 	//FNetChannelGlobalInfo::Get()->Init();
 
@@ -69,6 +65,10 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	//FNetChannelManager::Destroy(Server);
 	//FNetChannelManager::Destroy(Client);
 	//DedicatedServerUtils::FThreadManagement::Destroy();
+
+	UMySQL_Example::TestMySQL_4();
+	system("pause");
+
 
 	FEngineLoop::AppExit();
 	return 0;
