@@ -66,6 +66,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	//FNetChannelManager::Destroy(Client);
 	//DedicatedServerUtils::FThreadManagement::Destroy();
 
+	//UMySQL_Example::TestMySQL_1();
 	UMySQL_Example::TestMySQL_4();
 	system("pause");
 

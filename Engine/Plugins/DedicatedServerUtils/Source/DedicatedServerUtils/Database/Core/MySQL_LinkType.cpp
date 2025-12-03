@@ -2,7 +2,7 @@
 #include "UObject/EnumProperty.h"
 
 
-FMySQL_FieldType::FMySQL_FieldType()
+FMySQL_FieldTypeProperties::FMySQL_FieldTypeProperties()
 	: VariableType(EMySQL_VariableType::VarChar)
 	, bIsUnsigned(false)
 	, Size(0)
@@ -12,7 +12,7 @@ FMySQL_FieldType::FMySQL_FieldType()
 {
 }
 
-FString FMySQL_FieldType::ToString() const
+FString FMySQL_FieldTypeProperties::ToString() const
 {
 	/*
 	* 基本的类型相关规定
@@ -78,3 +78,98 @@ FString FMySQL_TableOptions::ToString() const
 
 	return SQL;
 }
+
+FString FMySQL_JoinParams::ToString() const
+{
+	FString SQL = TEXT(" ");
+	SQL += StaticEnum<EMySQL_SelectJoinMode>()->GetNameStringByIndex((int32)JoinMode) + TEXT(" JOIN ");
+	SQL += TableName;
+	if (JoinMode != EMySQL_SelectJoinMode::Cross && !Conditions.IsEmpty())
+	{
+		SQL += TEXT(" ON ") + Conditions;
+	}
+	return SQL;
+}
+
+FString FMySQL_LimitParams::ToString() const
+{
+	FString SQL = TEXT(" LIMIT ");
+	SQL += LimitOffset > 0 ? FString::Printf(TEXT("%i,%i"), LimitOffset, LimitNum)
+						   : FString::Printf(TEXT("%i"), LimitNum);
+	return SQL;
+}
+
+FString FMySQL_UpdateParams::ToString() const
+{
+	FString SQL;
+	for (auto& Tmp : Joins)
+	{
+		SQL += Tmp.ToString();
+	}
+	SQL += TEXT(" SET ");
+	for (auto& Tmp : DataToUpdate)
+	{
+		SQL += Tmp.Key + TEXT("=") + Tmp.Value + TEXT(",");
+	}
+	SQL.RemoveFromEnd(TEXT(","));
+	if (!Conditions.IsEmpty())
+	{
+		SQL += TEXT(" WHERE ") + Conditions;
+	}
+	if (OrdersAndIsDesc.Num() > 0)
+	{
+		SQL += TEXT(" ORDER BY ");
+		for (auto& Tmp : OrdersAndIsDesc)
+		{
+			SQL += Tmp.Key + (Tmp.Value ? TEXT(" DESC,") : TEXT(","));
+		}
+		SQL.RemoveFromEnd(",");
+	}
+	if (Limit.LimitNum >= 0)
+	{
+		SQL += Limit.ToString();
+	}
+	return SQL;
+}
+
+FString FMySQL_UpdateReplaceData::ToString() const
+{
+	FString SQL = TEXT(" ") + FieldName + TEXT("=REPLACE(") + FieldName + TEXT(",");
+	SQL += TEXT("'") + OldSubString + TEXT("',");
+	SQL += TEXT("'") + NewSubString + TEXT("')");
+	return SQL;
+}
+
+FString FMySQL_UpdateReplaceParams::ToString() const
+{
+	FString SQL;
+	for (auto& Tmp : Joins)
+	{
+		SQL += Tmp.ToString();
+	}
+	SQL += TEXT(" SET");
+	for (auto& Tmp : DataToReplace)
+	{
+		SQL += Tmp.ToString() + TEXT(",");
+	}
+	SQL.RemoveFromEnd(TEXT(","));
+	if (!Conditions.IsEmpty())
+	{
+		SQL += TEXT(" WHERE ") + Conditions;
+	}
+	if (OrdersAndIsDesc.Num() > 0)
+	{
+		SQL += TEXT(" ORDER BY ");
+		for (auto& Tmp : OrdersAndIsDesc)
+		{
+			SQL += Tmp.Key + (Tmp.Value ? TEXT(" DESC,") : TEXT(","));
+		}
+		SQL.RemoveFromEnd(",");
+	}
+	if (Limit.LimitNum >= 0)
+	{
+		SQL += Limit.ToString();
+	}
+	return SQL;
+}
+

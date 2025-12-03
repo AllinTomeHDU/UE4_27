@@ -4,6 +4,8 @@
 #include "UObject/NoExportTypes.h"
 #include "MySQL_Example.generated.h"
 
+#define TEST_PASSWORD TEXT("20212526Hdu.")
+
 
 UCLASS()
 class DEDICATEDSERVERUTILS_API  UMySQL_Example : public UObject

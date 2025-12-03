@@ -59,7 +59,7 @@ void UMySQL_Example::TestMySQL_1()
 	}
 	const char* host = "127.0.0.1";
 	const char* user = "root";
-	const char* pwd = "";
+	const char* pwd = TCHAR_TO_UTF8(TEST_PASSWORD);
 	const char* db = "test";
 	const char* table = "playerinfo";
 	const uint32 port = 3306;
@@ -145,6 +145,10 @@ void UMySQL_Example::TestMySQL_1()
 		//if ((result_int = mysql_real_query(&mysql, select, strlen(select))) == 0)
 		if ((result_int = mysql_query(&mysql, select)) == 0)
 		{
+			/*
+			* mysql_fetch_field() 不能直接获取数据库的内容，也不会默认访问任何表,
+			* 它只是读取 最近一次 mysql_query() 执行后结果集中的字段元数据。
+			*/
 			//if ((result = mysql_use_result(&mysql)) != nullptr)	// 在服务器内存直接读
 			if ((result = mysql_store_result(&mysql)) != nullptr)	// 存储到本地缓存，再从本地读取
 			{
@@ -545,31 +549,87 @@ void UMySQL_Example::TestMySQL_3()
 
 void UMySQL_Example::TestMySQL_4()
 {
-	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD, 3306, TEXT(""), CLIENT_MULTI_STATEMENTS);
-	if (MySQL.CreateDatabase(TEXT("game_2")))
+	TSet<EMySQL_ClientFlag> ClientFlags;
+	ClientFlags.Add(EMySQL_ClientFlag::Client_Multi_Statements);
+	ClientFlags.Add(EMySQL_ClientFlag::Client_Compress);
+	ClientFlags.Add(EMySQL_ClientFlag::CLIENT_Remember_Options);
+	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD, 3306, TEXT(""), ClientFlags);
+	//if (MySQL.CreateDatabase(TEXT("game_3")))
+	//{
+	//	FMySQL_TableOptions TableOptions;
+	//	TMap<FString, FMySQL_FieldType> Fields;
+	//	TArray<FString> PrimaryKeys;
+
+	//	FMySQL_FieldType ID_Field;
+	//	ID_Field.VariableType = EMySQL_VariableType::BigInt;
+	//	ID_Field.bIsUnsigned = true;
+	//	ID_Field.bIsNull = false;
+	//	ID_Field.bAutoIncrement = true;
+	//	Fields.Add(TEXT("id"), ID_Field);
+
+	//	FMySQL_FieldType Name_Field;
+	//	Name_Field.Size = 255;
+	//	Fields.Add(TEXT("name"), Name_Field);
+
+	//	PrimaryKeys.Add(TEXT("id"));
+	//	TableOptions.AutoIncrementStart = 10000;
+	//	TableOptions.Comment = TEXT("Test Table~~~");
+	//	MySQL.CreateTable(TEXT("good_game"), Fields, PrimaryKeys, TableOptions);
+	//}
+
+	//if (MySQL.SelectDatabase(TEXT("game_3")))
+	//{
+	//	MySQL.DropTable(TEXT("good_game"));
+	//}
+	//MySQL.DropDatabase(TEXT("game_3"));
+
+	if (MySQL.SelectDatabase(TEXT("test")))
 	{
-		if (MySQL.SelectDatabase(TEXT("game_2")))
-		{
-			FMySQL_TableOptions TableOptions;
-			TMap<FString, FMySQL_FieldType> Fields;
-			TArray<FString> PrimaryKeys;
+		//if (MySQL.QueryLink(TEXT("SELECT * FROM playerinfo")))
+		//{
+		//	TMap<FString, TArray<FString>> Results;
+		//	//MySQL.GetStoreResults(Results);
+		//	MySQL.GetUseResults(Results);
+		//}
+		//MySQL.DropTable(TEXT("playerinfo"));
+		//MySQL.TruncateTable(TEXT("playerinfo"));
+		//MySQL.DeleteData(TEXT("playerinfo"), TEXT("sex is NULL"));
+		
+		//TArray<FMySQL_FieldsData> Results;
+		//MySQL.SelectData(Results, TEXT("playerinfo"), { TEXT("id"), TEXT("name"), TEXT("dt")}, {}, TEXT("sex='1' OR sex IS NULL"));
+		//MySQL.PrintResults(Results);
 
-			FMySQL_FieldType ID_Field;
-			ID_Field.VariableType = EMySQL_VariableType::BigInt;
-			ID_Field.bIsUnsigned = true;
-			ID_Field.bIsNull = false;
-			ID_Field.bAutoIncrement = true;
-			Fields.Add(TEXT("id"), ID_Field);
+		//FMySQL_UpdateParams Params;
+		//Params.DataToUpdate.Add(FString(TEXT("dt")), FDateTime::Now().ToString(TEXT("'%Y-%m-%d %H:%M:%S'")));
+		//Params.Conditions = TEXT("dt IS NULL");
+		//Params.OrdersAndIsDesc.Add(TEXT("id"), true);
+		//Params.Limit.LimitNum = 2;
+		//MySQL.UpdateData(TEXT("playerinfo"), Params);
 
-			FMySQL_FieldType Name_Field;
-			Name_Field.Size = 255;
-			Fields.Add(TEXT("name"), Name_Field);
+		//FMySQL_UpdateReplaceParams Params;
+		//Params.DataToReplace.Add(FMySQL_UpdateReplaceData(TEXT("name"), TEXT("a"), TEXT("A")));
+		//Params.DataToReplace.Add(FMySQL_UpdateReplaceData(TEXT("name"), TEXT("g"), TEXT("G")));
+		//Params.Conditions = TEXT("id % 2 = 0");
+		//MySQL.UpdateDataReplace(TEXT("playerinfo"), Params);
 
-			PrimaryKeys.Add(TEXT("id"));
-			TableOptions.AutoIncrementStart = 10000;
-			TableOptions.Comment = TEXT("Test Table~~~");
-			MySQL.CreateTable(TEXT("vip"), Fields, PrimaryKeys, TableOptions);
-		}
+		FString Now = FDateTime::Now().ToString(TEXT("'%Y-%m-%d %H:%M:%S'"));
+
+		//TMap<FString, TArray<FString>> DataToInsert;
+		//DataToInsert.Add(TEXT("id"), { TEXT("10"), TEXT("11"), TEXT("12") });
+		//DataToInsert.Add(TEXT("name"), { TEXT("'aa'"), TEXT("'bb'"), TEXT("'cc'") });
+		//DataToInsert.Add(TEXT("dt"), { Now, Now, Now });
+		//MySQL.InsertDataByFields(TEXT("playerinfo"), DataToInsert);
+
+		//TArray<TArray<FString>> DataToInsert;
+		//DataToInsert.Add({ TEXT("20"),TEXT("'XX'"),TEXT("NULL"),TEXT("NULL") });
+		//DataToInsert.Add({ TEXT("21"),TEXT("'YY'"),TEXT("1"),Now });
+		//DataToInsert.Add({ TEXT("22"),TEXT("'ZZ'"),TEXT("0"),Now });
+		//MySQL.InsertDataByRows(TEXT("playerinfo"), DataToInsert);
+
+		TArray<TArray<FString>> DataToInsert;
+		DataToInsert.Add({ TEXT("30"),TEXT("'gg'") });
+		DataToInsert.Add({ TEXT("31"),TEXT("'mm'") });
+		MySQL.InsertDataByRows(TEXT("playerinfo"), DataToInsert, { TEXT("id"),TEXT("name") });
 	}
 }
 

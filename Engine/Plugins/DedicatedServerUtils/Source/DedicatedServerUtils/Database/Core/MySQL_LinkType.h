@@ -77,74 +77,92 @@ enum class EMySQL_VariableType : uint8
 	Unknown				UMETA(DisplayName = "Unknown / 自定义类型")
 };
 
-//UENUM(BlueprintType)
-//enum class EMySQL_VariableType :uint8
-//{
-//	MYSQL_DECIMAL					UMETA(DisplayName = "Decimal"),		//DECIMAL(M,D)/NUMERIC  M > D ? M+ 2 : D+ 2
-//	MYSQL_TINY						UMETA(DisplayName = "Small Int"),	//SMALLINT		2 //s
-//	MYSQL_SHORT						UMETA(DisplayName = "Short"),		//SHORT			2 //s
-//	MYSQL_LONG						UMETA(DisplayName = "integer"),		//INTEGER		4 //s
-//	MYSQL_FLOAT						UMETA(DisplayName = "Float"),		//FLOAT			4 //s
-//	MYSQL_DOUBLE					UMETA(DisplayName = "Double"),		//DOUBLE/REAL	8 //s
-//	MYSQL_NULL						UMETA(DisplayName = "Null"),		//NULL
-//	MYSQL_TIMESTAMP					UMETA(DisplayName = "Time Stamp"),	//TIMESTAMP		8
-//	MYSQL_LONGLONG					UMETA(DisplayName = "Big Int"),		//BIGINT		8 //s
-//	MYSQL_INT24						UMETA(DisplayName = "Medium Int"),	//MEDIUMINT		3 //ns
-//	MYSQL_DATE						UMETA(DisplayName = "Date"),		//DATE			3
-//	MYSQL_TIME						UMETA(DisplayName = "Time"),		//TIME			3
-//	MYSQL_DATETIME					UMETA(DisplayName = "Date Time"),	//DATETIME		8
-//	MYSQL_YEAR						UMETA(DisplayName = "Year"),		//YEAR			1
-//	MYSQL_NEWDATE					UMETA(DisplayName = "New Date"),	//NEWDATE
-//	MYSQL_VARCHAR					UMETA(DisplayName = "Varchar"),		//VARCHAR
-//	MYSQL_BIT						UMETA(DisplayName = "Bit"),			//BIT(M)			
-//	MYSQL_TIMESTAMP2				UMETA(DisplayName = "Time Stamp2"),
-//	MYSQL_DATETIME2					UMETA(DisplayName = "Date Time2"),
-//	MYSQL_TIME2						UMETA(DisplayName = "Time2"),
-//	MYSQL_JSON			= 245		UMETA(DisplayName = "Json"),		//@@
-//	MYSQL_NEWDECIMAL	= 246		UMETA(DisplayName = "New Decimal"),	//
-//	MYSQL_ENUM			= 247		UMETA(DisplayName = "Enum"),		//				1 or 2   65535个
-//	MYSQL_SET			= 248		UMETA(DisplayName = "Set"),			//				1,2,4,8
-//	MYSQL_TINY_BLOB		= 249		UMETA(DisplayName = "Tiny Blob"),	//@@				//s
-//	MYSQL_MEDIUM_BLOB	= 250		UMETA(DisplayName = "Medium Blob"),	//@@				//s
-//	MYSQL_LONG_BLOB		= 251		UMETA(DisplayName = "Long Blob"),	//@@				//s
-//	MYSQL_BLOB			= 252		UMETA(DisplayName = "Blob"),		//@@ 				//s
-//	MYSQL_VAR_STRING	= 253		UMETA(DisplayName = "VarString"),	//@@ //VARCHAR
-//	MYSQL_STRING		= 254		UMETA(DisplayName = "String"),		//@@ //CHAR/VARCHAR 
-//	MYSQL_GEOMETRY		= 255		UMETA(DisplayName = "Geometry"),	//   Geometry(PINT(经度 维度)) 
-//};
+UENUM(BlueprintType)
+enum class EMySQL_FieldType : uint8
+{
+	MYSQL_DECIMAL					UMETA(DisplayName = "Decimal"),		//DECIMAL(M,D)/NUMERIC  M > D ? M+ 2 : D+ 2
+	MYSQL_TINY						UMETA(DisplayName = "Small Int"),	//SMALLINT		2 //s
+	MYSQL_SHORT						UMETA(DisplayName = "Short"),		//SHORT			2 //s
+	MYSQL_LONG						UMETA(DisplayName = "integer"),		//INTEGER		4 //s
+	MYSQL_FLOAT						UMETA(DisplayName = "Float"),		//FLOAT			4 //s
+	MYSQL_DOUBLE					UMETA(DisplayName = "Double"),		//DOUBLE/REAL	8 //s
+	MYSQL_NULL						UMETA(DisplayName = "Null"),		//NULL
+	MYSQL_TIMESTAMP					UMETA(DisplayName = "Time Stamp"),	//TIMESTAMP		8
+	MYSQL_LONGLONG					UMETA(DisplayName = "Big Int"),		//BIGINT		8 //s
+	MYSQL_INT24						UMETA(DisplayName = "Medium Int"),	//MEDIUMINT		3 //ns
+	MYSQL_DATE						UMETA(DisplayName = "Date"),		//DATE			3
+	MYSQL_TIME						UMETA(DisplayName = "Time"),		//TIME			3
+	MYSQL_DATETIME					UMETA(DisplayName = "Date Time"),	//DATETIME		8
+	MYSQL_YEAR						UMETA(DisplayName = "Year"),		//YEAR			1
+	MYSQL_NEWDATE					UMETA(DisplayName = "New Date"),	//NEWDATE
+	MYSQL_VARCHAR					UMETA(DisplayName = "Varchar"),		//VARCHAR
+	MYSQL_BIT						UMETA(DisplayName = "Bit"),			//BIT(M)			
+	MYSQL_TIMESTAMP2				UMETA(DisplayName = "Time Stamp2"),
+	MYSQL_DATETIME2					UMETA(DisplayName = "Date Time2"),
+	MYSQL_TIME2						UMETA(DisplayName = "Time2"),
+	MYSQL_JSON			= 245		UMETA(DisplayName = "Json"),		//@@
+	MYSQL_NEWDECIMAL	= 246		UMETA(DisplayName = "New Decimal"),	//
+	MYSQL_ENUM			= 247		UMETA(DisplayName = "Enum"),		//				1 or 2   65535个
+	MYSQL_SET			= 248		UMETA(DisplayName = "Set"),			//				1,2,4,8
+	MYSQL_TINY_BLOB		= 249		UMETA(DisplayName = "Tiny Blob"),	//@@				//s
+	MYSQL_MEDIUM_BLOB	= 250		UMETA(DisplayName = "Medium Blob"),	//@@				//s
+	MYSQL_LONG_BLOB		= 251		UMETA(DisplayName = "Long Blob"),	//@@				//s
+	MYSQL_BLOB			= 252		UMETA(DisplayName = "Blob"),		//@@ 				//s
+	MYSQL_VAR_STRING	= 253		UMETA(DisplayName = "VarString"),	//@@ //VARCHAR
+	MYSQL_STRING		= 254		UMETA(DisplayName = "String"),		//@@ //CHAR/VARCHAR 
+	MYSQL_GEOMETRY		= 255		UMETA(DisplayName = "Geometry"),	//   Geometry(PINT(经度 维度)) 
+};
 
 USTRUCT(BlueprintType)
-struct FMySQL_FieldType
+struct DEDICATEDSERVERUTILS_API FMySQL_FieldTypeProperties
 {
 	GENERATED_BODY()
 
-	FMySQL_FieldType();
+	FMySQL_FieldTypeProperties();
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	EMySQL_VariableType VariableType;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	bool bIsUnsigned;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	int32 Size;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	int32 DecimalPoint;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	bool bIsNull;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	FString DefaultValue;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	bool bAutoIncrement;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	FString Comment;
 
 	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_FieldsData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DedicatedServerUtil|Database")
+	FString Name;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DedicatedServerUtil|Database")
+	EMySQL_FieldType Type;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DedicatedServerUtil|Database")
+	int32 MaxLength;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DedicatedServerUtil|Database")
+	TArray<FString> DataValues;
 };
 
 UENUM(BlueprintType)
@@ -211,21 +229,165 @@ enum class EMySQL_Charset : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FMySQL_TableOptions
+struct DEDICATEDSERVERUTILS_API FMySQL_TableOptions
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	EMySQL_SaveEngine Engine = EMySQL_SaveEngine::InnoDB;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	EMySQL_Charset Charset = EMySQL_Charset::utf8;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	int64 AutoIncrementStart;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	FString Comment;
+
+	FString ToString() const;
+};
+
+/*
+* 保证此处枚举值与官方枚举值顺序一致
+*/
+UENUM(BlueprintType)
+enum class EMySQL_ClientFlag : uint8
+{
+	Client_Long_Password,		/* 使用更安全的加密密码 */
+	Client_Found_Rows,			/* 返回“找到的行数”而不是“受影响的行数” */
+	Client_Long_Flag,			/* 获取所有列的详细标志信息 */
+	Client_Connect_With_DB,		/* 在连接时可以直接指定数据库 */
+	Client_No_Schema,			/* 不允许使用 database.table.column 这种带库前缀的列名格式 */
+	Client_Compress,			/* 启用压缩协议 */
+	Client_ODBC,				/* ODBC 客户端 */
+	Client_Local_Files,			/* 允许使用 LOAD DATA LOCAL INFILE 从本地文件导入数据 */
+	Client_Ignore_Space,		/* 在函数名后允许空格（例如允许 "COUNT (*)"） */
+	Client_Protocol_41,			/* New 4.1 protocol */
+	Client_Interactive,			/* 标记为交互式客户端（服务器会设置更长的超时时间） */
+	Client_SSL,					/* 握手完成后切换到 SSL 加密通信 */
+	Client_Ignore_Sigpipe,		/* 忽略 SIGPIPE 信号（防止写入关闭的 socket 时程序被终止） */
+	Client_Transactions,		/* 客户端支持事务（InnoDB 或其他事务型引擎） */
+	Client_Reserved,			/* 保留字段（旧协议遗留标志，用于 4.1 协议）  */
+	Client_Reserved2,			/* 保留字段（旧版本认证兼容用） */
+	Client_Multi_Statements,	/* 启用多语句支持 */
+	Client_Multi_Results,		/* 启用多结果集 */
+	Client_PS_Multi_Results,	/* M启用预处理语句（Prepared Statement）下的多结果集返回 */
+	CLIENT_PLUGIN_AUTH,			/* 支持插件式认证 */
+	client_connect_attrs,		/* 支持连接属性 */
+	CLIENT_Plugin_Auth_Lenenc_Client_Data,	/* 支持更长的认证数据包 */
+	CLIENT_Can_Handle_Expired_Passwords,	/* 支持处理过期密码 */
+	CLIENT_Session_Track,		/* 支持会话状态跟踪 */
+	CLIENT_Deprecate_EOF,		/* 不再使用 EOF 包 */
+	CLIENT_Optional_Resultset_Metadata,		/* 允许服务器省略部分结果集元数据*/
+	CLIENT_Ssl_Verify_Server_Cert = 30,		/* 启用服务器证书验证 */
+	CLIENT_Remember_Options = 31			/* 在连接失败后保留客户端选项 */
+};
+
+UENUM(BlueprintType)
+enum class EMySQL_SelectJoinMode : uint8
+{
+	Inner,
+	Left,
+	Right,
+	Cross
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_JoinParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	EMySQL_SelectJoinMode JoinMode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString TableName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString Conditions;
+
+	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_LimitParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	int32 LimitOffset = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	int32 LimitNum = -1;
+
+	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_UpdateParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TMap<FString, FString> DataToUpdate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TArray<FMySQL_JoinParams> Joins;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString Conditions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TMap<FString, bool> OrdersAndIsDesc;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FMySQL_LimitParams Limit;
+
+	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceData
+{
+	GENERATED_BODY()
+
+	FMySQL_UpdateReplaceData() {}
+	FMySQL_UpdateReplaceData(const FString& InField, const FString& InOld, const FString& InNew)
+		: FieldName(InField), OldSubString(InOld), NewSubString(InNew)
+	{}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString FieldName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString OldSubString;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString NewSubString;
+
+	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TArray<FMySQL_UpdateReplaceData> DataToReplace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TArray<FMySQL_JoinParams> Joins;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString Conditions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TMap<FString, bool> OrdersAndIsDesc;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FMySQL_LimitParams Limit;
 
 	FString ToString() const;
 };
