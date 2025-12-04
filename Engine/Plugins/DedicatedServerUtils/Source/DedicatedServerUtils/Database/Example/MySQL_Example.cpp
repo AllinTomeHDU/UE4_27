@@ -549,7 +549,7 @@ void UMySQL_Example::TestMySQL_3()
 
 void UMySQL_Example::TestMySQL_4()
 {
-	TSet<EMySQL_ClientFlag> ClientFlags;
+	TArray<EMySQL_ClientFlag> ClientFlags;
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Multi_Statements);
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Compress);
 	ClientFlags.Add(EMySQL_ClientFlag::CLIENT_Remember_Options);
@@ -585,15 +585,24 @@ void UMySQL_Example::TestMySQL_4()
 
 	if (MySQL.SelectDatabase(TEXT("test")))
 	{
-		//if (MySQL.QueryLink(TEXT("SELECT * FROM playerinfo")))
+		//if (MySQL.QueryLink(TEXT("USE test; SELECT * FROM playerinfo")))
 		//{
-		//	TMap<FString, TArray<FString>> Results;
-		//	//MySQL.GetStoreResults(Results);
-		//	MySQL.GetUseResults(Results);
+		//	TArray<FMySQL_FieldsData> Results;
+		//	//MySQL.GetSelectResults(Results);
+		//	MySQL.GetSelectResults(Results,false);
+		//	MySQL.PrintResults(Results);
 		//}
 		//MySQL.DropTable(TEXT("playerinfo"));
 		//MySQL.TruncateTable(TEXT("playerinfo"));
 		//MySQL.DeleteData(TEXT("playerinfo"), TEXT("sex is NULL"));
+		
+		//MySQL.CreateTableLike(TEXT("playerinfo_1"), TEXT("playerinfo"));
+		//MySQL.CopyTable(TEXT("playerinfo_2"), TEXT("playerinfo"));
+		
+		//TMap<FString, bool> OrdersAndIsDesc;
+		//OrdersAndIsDesc.Add(TEXT("id"), false);
+		//MySQL.CopyTableSelect(TEXT("playerinfo_3"), TEXT("playerinfo"), { TEXT("id"), TEXT("name") }, TEXT("sex=1"), OrdersAndIsDesc);
+		//MySQL.CopyTableSelect(TEXT("playerinfo_4"), TEXT("playerinfo"), {}, TEXT("sex=1"), OrdersAndIsDesc);
 		
 		//TArray<FMySQL_FieldsData> Results;
 		//MySQL.SelectData(Results, TEXT("playerinfo"), { TEXT("id"), TEXT("name"), TEXT("dt")}, {}, TEXT("sex='1' OR sex IS NULL"));
@@ -612,7 +621,7 @@ void UMySQL_Example::TestMySQL_4()
 		//Params.Conditions = TEXT("id % 2 = 0");
 		//MySQL.UpdateDataReplace(TEXT("playerinfo"), Params);
 
-		FString Now = FDateTime::Now().ToString(TEXT("'%Y-%m-%d %H:%M:%S'"));
+		//FString Now = FDateTime::Now().ToString(TEXT("'%Y-%m-%d %H:%M:%S'"));
 
 		//TMap<FString, TArray<FString>> DataToInsert;
 		//DataToInsert.Add(TEXT("id"), { TEXT("10"), TEXT("11"), TEXT("12") });
@@ -626,10 +635,70 @@ void UMySQL_Example::TestMySQL_4()
 		//DataToInsert.Add({ TEXT("22"),TEXT("'ZZ'"),TEXT("0"),Now });
 		//MySQL.InsertDataByRows(TEXT("playerinfo"), DataToInsert);
 
-		TArray<TArray<FString>> DataToInsert;
-		DataToInsert.Add({ TEXT("30"),TEXT("'gg'") });
-		DataToInsert.Add({ TEXT("31"),TEXT("'mm'") });
-		MySQL.InsertDataByRows(TEXT("playerinfo"), DataToInsert, { TEXT("id"),TEXT("name") });
+		//TArray<TArray<FString>> DataToInsert;
+		//DataToInsert.Add({ TEXT("30"),TEXT("'gg'") });
+		//DataToInsert.Add({ TEXT("31"),TEXT("'mm'") });
+		//MySQL.InsertDataByRows(TEXT("playerinfo"), DataToInsert, { TEXT("id"),TEXT("name") });
+
+		//TMap<FString, bool> OrdersAndIsDesc;
+		//OrdersAndIsDesc.Add(TEXT("id"), false);
+		//MySQL.InsertDataBySelect(
+		//	TEXT("playerinfo_3"), 
+		//	TEXT("playerinfo"), 
+		//	{TEXT("id"), TEXT("name")},
+		//	{TEXT("id"), TEXT("CONCAT(name, '_cp')")},
+		//	TEXT("sex=0 OR sex is NULL"), 
+		//	OrdersAndIsDesc,
+		//	FMySQL_LimitParams(),
+		//	true
+		//);
+
+		//MySQL.InsertDataBySelect(
+		//	TEXT("playerinfo_3"), TEXT("playerinfo_2"), {}, {}, TEXT(""), {}, FMySQL_LimitParams(), false, false, true
+		//);
 	}
+}
+
+void UMySQL_Example::TestMySQL_5()
+{
+	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD);
+
+	//TArray<FString> MetaDataResults;
+	//MySQL.GetDatabases(MetaDataResults);
+	//MySQL.GetTables(MetaDataResults, TEXT("test"));
+	//for (auto& Tmp : MetaDataResults)
+	//{
+	//	UE_LOG(LogTemp, Display, TEXT("%s"), *Tmp);
+	//}
+
+	//TArray<FMySQL_FieldsData> Results;
+	//if (MySQL.QueryLink(TEXT("SHOW DATABASES;")))
+	//if (MySQL.QueryLink(TEXT("SHOW TABLES FROM test;")))
+
+	//if (MySQL.QueryLink(TEXT("SHOW TABLE STATUS FROM test;")))
+	//{
+	//	MySQL.GetSelectResults(Results);
+	//	MySQL.PrintResults(Results);
+	//}
+	//if (MySQL.GetTableStatus(Results, TEXT("test")))
+	//{
+	//	MySQL.PrintResults(Results);
+	//}
+	//if (MySQL.GetTableDESC(Results, TEXT("playerinfo"), TEXT("test")))
+	//{
+	//	MySQL.PrintResults(Results);
+	//}
+
+	//TMap<FString, FString> Results;
+	//MySQL.GetStatus(Results);
+	//int i = 0;
+	//for (auto& Tmp : Results)
+	//{
+	//	UE_LOG(LogTemp, Display, TEXT("(%d)%s:%s"), i++, *Tmp.Key, *Tmp.Value);
+	//}
+
+
+
+	return;
 }
 

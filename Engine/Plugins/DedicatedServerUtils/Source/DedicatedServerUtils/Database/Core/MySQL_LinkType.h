@@ -391,3 +391,4 @@ struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceParams
 
 	FString ToString() const;
 };
+

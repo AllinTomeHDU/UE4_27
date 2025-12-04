@@ -4,7 +4,7 @@
 
 
 FMySQL_Link::FMySQL_Link(const FString& InHost, const FString& InUser, const FString& InPassword, const uint32& InPort, 
-						 const FString& InUnixSocket, const TSet<EMySQL_ClientFlag>& InClientFlags)
+						 const FString& InUnixSocket, const TArray<EMySQL_ClientFlag>& InClientFlags)
 	: Host(InHost)
 	, User(InUser)
 	, Password(InPassword)
@@ -110,9 +110,11 @@ bool FMySQL_Link::SelectDatabase(const FString& DatabaseName)
 	return false;
 }
 
-bool FMySQL_Link::CreateTable(const FString& TableName, const TMap<FString, FMySQL_FieldTypeProperties>& InFields, const TArray<FString>& InPrimaryKeys, const FMySQL_TableOptions& InTableOptions)
+bool FMySQL_Link::CreateTable(const FString& TableName, const TMap<FString, FMySQL_FieldTypeProperties>& InFields, 
+							  const TArray<FString>& InPrimaryKeys, const FMySQL_TableOptions& InTableOptions, const bool bIsTemporary)
 {
-	FString SQL = TEXT("CREATE TABLE ") + TableName + TEXT("(");
+	FString SQL = bIsTemporary ? TEXT("CREATE TEMPORARY TABLE ") : TEXT("CREATE TABLE ");
+	SQL += TableName + TEXT("(");
 	for (auto& Tmp : InFields)
 	{
 		SQL += TEXT("`") + Tmp.Key + TEXT("` ") + Tmp.Value.ToString() + TEXT(",");
@@ -157,9 +159,78 @@ bool FMySQL_Link::TruncateTable(const FString& TableName)
 	return QueryLink(SQL);
 }
 
-bool FMySQL_Link::InsertDataByRows(const FString& TableName, const TArray<TArray<FString>>& Rows, const TArray<FString>& Fields)
+bool FMySQL_Link::CreateTableLike(const FString& NewTable, const FString& SourceTable, const bool bIsTemporary)
 {
-	FString SQL = TEXT("INSERT INTO ") + TableName;
+	FString SQL = bIsTemporary ? TEXT("CREATE TEMPORARY TABLE ") : TEXT("CREATE TABLE ");
+	SQL += NewTable + TEXT(" LIKE ") + SourceTable + TEXT(";");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::CopyTable(const FString& NewTable, const FString& SourceTable, const bool bIsTemporary)
+{
+	FString SQL = bIsTemporary ? TEXT("CREATE TEMPORARY TABLE ") : TEXT("CREATE TABLE ");
+	SQL += NewTable + TEXT(" LIKE ") + SourceTable + TEXT(";");
+	SQL += TEXT(" INSERT INTO ") + NewTable + TEXT(" SELECT * FROM ") + SourceTable + TEXT(";");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::CopyTableSelect(const FString& NewTable, const FString& SourceTable, const TArray<FString>& Fields, const FString& Conditions, 
+								  const TMap<FString, bool>& OrdersAndIsDesc, const FMySQL_LimitParams& Limit, const bool bIsDistinct, const bool bIsTemporary)
+{
+	FString SQL = bIsTemporary ? TEXT("CREATE TEMPORARY TABLE ") : TEXT("CREATE TABLE ");
+	SQL += NewTable + TEXT(" LIKE ") + SourceTable + TEXT(";");
+	SQL += TEXT(" INSERT INTO ") + NewTable;
+	if (Fields.Num() > 0)
+	{
+		SQL += TEXT(" (");
+		for (auto& Tmp : Fields)
+		{
+			SQL += Tmp + TEXT(",");
+		}
+		SQL.RemoveFromEnd(",");
+		SQL += TEXT(")");
+	}
+	SQL += bIsDistinct ? TEXT(" SELECT DISTINCT ") : TEXT(" SELECT ");
+	if (Fields.Num() == 0)
+	{
+		SQL += TEXT("*");
+	}
+	else
+	{
+		for (auto& Tmp : Fields)
+		{
+			SQL += Tmp + TEXT(",");
+		}
+		SQL.RemoveFromEnd(",");
+	}
+	SQL += TEXT(" FROM ") + SourceTable;
+	if (!Conditions.IsEmpty())
+	{
+		SQL += TEXT(" WHERE ") + Conditions;
+	}
+	if (OrdersAndIsDesc.Num() > 0)
+	{
+		SQL += TEXT(" ORDER BY ");
+		for (auto& Tmp : OrdersAndIsDesc)
+		{
+			SQL += Tmp.Key + (Tmp.Value ? TEXT(" DESC,") : TEXT(","));
+		}
+		SQL.RemoveFromEnd(",");
+	}
+	if (Limit.LimitNum >= 0)
+	{
+		SQL += Limit.ToString();
+	}
+	SQL += TEXT(";");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::InsertDataByRows(const FString& TableName, const TArray<TArray<FString>>& Rows, const TArray<FString>& Fields, 
+								   const bool bIsIgnore, const bool bIsReplace)
+{
+	FString SQL = bIsReplace ? TEXT("REPLACE ") : TEXT("INSERT ");
+	SQL += bIsIgnore && !bIsReplace ? TEXT("IGNORE INTO ") : TEXT("INTO ");
+	SQL += TableName;
 	if (Fields.Num() > 0)
 	{
 		SQL += TEXT(" (");
@@ -186,9 +257,11 @@ bool FMySQL_Link::InsertDataByRows(const FString& TableName, const TArray<TArray
 	return QueryLink(SQL);
 }
 
-bool FMySQL_Link::InsertDataByFields(const FString& TableName, const TMap<FString, TArray<FString>>& DataToInsert)
+bool FMySQL_Link::InsertDataByFields(const FString& TableName, const TMap<FString, TArray<FString>>& DataToInsert, const bool bIsIgnore, const bool bIsReplace)
 {
-	FString SQL = TEXT("INSERT INTO ") + TableName + TEXT(" (");
+	FString SQL = bIsReplace ? TEXT("REPLACE ") : TEXT("INSERT ");
+	SQL += bIsIgnore && !bIsReplace ? TEXT("IGNORE INTO ") : TEXT("INTO ");
+	SQL += TableName + TEXT(" (");
 	for (auto& Tmp : DataToInsert)
 	{
 		SQL += Tmp.Key + TEXT(",");
@@ -206,6 +279,58 @@ bool FMySQL_Link::InsertDataByFields(const FString& TableName, const TMap<FStrin
 		SQL += TEXT("),");
 	}
 	SQL.RemoveFromEnd(TEXT(","));
+	SQL += TEXT(";");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::InsertDataBySelect(const FString& TargetTable, const FString& SourceTable, const TArray<FString>& TargetFields, 
+									 const TArray<FString>& SourceFields, const FString& Conditions, const TMap<FString, bool>& OrdersAndIsDesc, 
+									 const FMySQL_LimitParams& Limit, const bool bIsDistinct, const bool bIsIgnore, const bool bIsReplace)
+{
+	FString SQL = bIsReplace ? TEXT("REPLACE ") : TEXT("INSERT ");
+	SQL += bIsIgnore && !bIsReplace ? TEXT("IGNORE INTO ") : TEXT("INTO ");
+	SQL += TargetTable;
+	if (TargetFields.Num() > 0)
+	{
+		SQL += TEXT(" (");
+		for (auto& Tmp : TargetFields)
+		{
+			SQL += Tmp + TEXT(",");
+		}
+		SQL.RemoveFromEnd(",");
+		SQL += TEXT(")");
+	}
+	SQL += bIsDistinct ? TEXT(" SELECT DISTINCT ") : TEXT(" SELECT ");
+	if (SourceFields.Num() == 0)
+	{
+		SQL += TEXT("*");
+	}
+	else
+	{
+		for (auto& Tmp : SourceFields)
+		{
+			SQL += Tmp + TEXT(",");
+		}
+		SQL.RemoveFromEnd(",");
+	}
+	SQL += TEXT(" FROM ") + SourceTable;
+	if (!Conditions.IsEmpty())
+	{
+		SQL += TEXT(" WHERE ") + Conditions;
+	}
+	if (OrdersAndIsDesc.Num() > 0)
+	{
+		SQL += TEXT(" ORDER BY ");
+		for (auto& Tmp : OrdersAndIsDesc)
+		{
+			SQL += Tmp.Key + (Tmp.Value ? TEXT(" DESC,") : TEXT(","));
+		}
+		SQL.RemoveFromEnd(",");
+	}
+	if (Limit.LimitNum >= 0)
+	{
+		SQL += Limit.ToString();
+	}
 	SQL += TEXT(";");
 	return QueryLink(SQL);
 }
@@ -276,7 +401,7 @@ bool FMySQL_Link::SelectData(TArray<FMySQL_FieldsData>& Results, const FString& 
 		SQL += Limit.ToString();
 	}
 	SQL += TEXT(";");
-	if (QueryLink(SQL) && (bIsStoreResults ? GetStoreResults(Results) : GetUseResults(Results)))
+	if (QueryLink(SQL) && GetSelectResults(Results, bIsStoreResults))
 	{
 		return true;
 	}
@@ -300,33 +425,39 @@ bool FMySQL_Link::UpdateDataReplace(const FString& TableName, const FMySQL_Updat
 	return QueryLink(SQL);
 }
 
-bool FMySQL_Link::GetStoreResults(TArray<FMySQL_FieldsData>& Results)
+bool FMySQL_Link::GetSelectResults(TArray<FMySQL_FieldsData>& Results, const bool bIsStoreResults)
 {
-	if (MYSQL_RES* Result = mysql_store_result(&MySQL))
+	MYSQL_RES* ResultValues = bIsStoreResults ? mysql_store_result(&MySQL) : mysql_use_result(&MySQL);
+	if (ResultValues)
 	{
-		GetSelectResults(Result, Results);
-		mysql_free_result(Result);
+		Results.Empty();
+		int32 FieldNum = mysql_num_fields(ResultValues);
+		MYSQL_FIELD* FieldProperties = mysql_fetch_field(ResultValues);
+		for (int i = 0; i < FieldNum; ++i)
+		{
+			FMySQL_FieldsData FieldsData;
+			FieldsData.Name = ANSI_TO_TCHAR(FieldProperties[i].name);
+			FieldsData.Type = static_cast<EMySQL_FieldType>(FieldProperties[i].type);
+			FieldsData.MaxLength = FieldProperties[i].max_length;
+			Results.Add(FieldsData);
+		}
+		while (MYSQL_ROW Row = mysql_fetch_row(ResultValues))
+		{
+			for (int i = 0; i < FieldNum; ++i)
+			{
+				Results[i].DataValues.Add(Row[i] == nullptr ? FString(TEXT("NULL")) : FString(ANSI_TO_TCHAR(Row[i])));
+			}
+		}
+		mysql_free_result(ResultValues);
 		return true;
 	}
 	UE_LOG(LogDedicatedServerUtils, Error, TEXT("mysql_store_result failed: %s"), ANSI_TO_TCHAR(mysql_error(&MySQL)));
 	return false;
 }
 
-bool FMySQL_Link::GetUseResults(TArray<FMySQL_FieldsData>& Results)
+void FMySQL_Link::PrintResults(const TArray<FMySQL_FieldsData>& Results)
 {
-	if (MYSQL_RES* Result = mysql_use_result(&MySQL))
-	{
-		GetSelectResults(Result, Results);
-		mysql_free_result(Result);
-		return true;
-	}
-	UE_LOG(LogDedicatedServerUtils, Error, TEXT("mysql_store_result failed: %s"), ANSI_TO_TCHAR(mysql_error(&MySQL)));
-	return false;
-}
-
-void FMySQL_Link::PrintResults(const TArray<FMySQL_FieldsData>& Results, const int Length)
-{
-	FString HeadLine = TEXT("*");
+	FString HeadLine = TEXT("+");
 	FString FieldsLine = TEXT("|");
 	for (int i = 0; i < Results.Num(); ++i)
 	{
@@ -335,7 +466,7 @@ void FMySQL_Link::PrintResults(const TArray<FMySQL_FieldsData>& Results, const i
 		{
 			HeadLine += TEXT("-");
 		}
-		HeadLine += TEXT("*");
+		HeadLine += TEXT("+");
 
 		int SpaceLen = 2 + (MaxLen - Results[i].Name.Len());
 		for (int j = 0; j < (SpaceLen % 2 == 0 ? SpaceLen / 2 : SpaceLen / 2 + 1); ++j)
@@ -372,27 +503,127 @@ void FMySQL_Link::PrintResults(const TArray<FMySQL_FieldsData>& Results, const i
 	UE_LOG(LogTemp, Display, TEXT("%s"), *HeadLine);
 }
 
-void FMySQL_Link::GetSelectResults(MYSQL_RES* ResultValues, TArray<FMySQL_FieldsData>& Results)
+bool FMySQL_Link::StartTransaction()
 {
-	Results.Empty();
-	int32 FieldNum = mysql_num_fields(ResultValues);
-	MYSQL_FIELD* FieldProperties = mysql_fetch_field(ResultValues);
-	for (int i = 0; i < FieldNum; ++i)
-	{
-		FMySQL_FieldsData FieldsData;
-		FieldsData.Name = ANSI_TO_TCHAR(FieldProperties[i].name);
-		FieldsData.Type = static_cast<EMySQL_FieldType>(FieldProperties[i].type);
-		FieldsData.MaxLength = FieldProperties[i].max_length;
-		Results.Add(FieldsData);
-	}
-	while (MYSQL_ROW Row = mysql_fetch_row(ResultValues))
-	{
-		for (int i = 0; i < FieldNum; ++i)
-		{
-			Results[i].DataValues.Add(Row[i] == nullptr ? FString(TEXT("NULL")) : FString(ANSI_TO_TCHAR(Row[i])));
-		}
-	}
+	FString SQL = TEXT("START TRANSACTION;");
+	return QueryLink(SQL);
 }
 
+bool FMySQL_Link::SetAutoCommit(const bool bAuto)
+{
+	FString SQL = TEXT("SET AUTOCOMMIT = ") + FString::Printf(TEXT("%i"), bAuto) + TEXT(";");
+	return QueryLink(SQL);
+}
 
+bool FMySQL_Link::Commit()
+{
+	FString SQL = TEXT("COMMIT;");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::SavePoint(const FString& PointName)
+{
+	FString SQL = TEXT("SAVEPOINT = ") + PointName + TEXT(";");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::RollBack(const FString& PointName)
+{
+	FString SQL = TEXT("ROLLBACK");
+	if (!PointName.IsEmpty())
+	{
+		SQL += TEXT(" ") + PointName;
+	}
+	SQL += TEXT(";");
+	return QueryLink(SQL);
+}
+
+bool FMySQL_Link::GetStatus(TMap<FString, FString>& Results)
+{
+	FString SQL = TEXT("SHOW STATUS;");
+	if (QueryLink(SQL))
+	{
+		if (MYSQL_RES* QueryRes = mysql_store_result(&MySQL))
+		{
+			Results.Empty();
+			int32 FieldNum = mysql_num_fields(QueryRes);
+			while (MYSQL_ROW Row = mysql_fetch_row(QueryRes))
+			{
+				Results.Add(FString(ANSI_TO_TCHAR(Row[0])), FString(ANSI_TO_TCHAR(Row[1])));
+			}
+			mysql_free_result(QueryRes);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FMySQL_Link::GetDatabases(TArray<FString>& Results)
+{
+	FString SQL = TEXT("SHOW DATABASES;");
+	if (QueryLink(SQL))
+	{
+		if (MYSQL_RES* QueryRes = mysql_store_result(&MySQL))
+		{
+			Results.Empty();
+			while (MYSQL_ROW Row = mysql_fetch_row(QueryRes))
+			{
+				if (Row[0] != nullptr)
+				{
+					Results.Add(UTF8_TO_TCHAR(Row[0]));
+				}
+			}
+			mysql_free_result(QueryRes);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FMySQL_Link::GetTables(TArray<FString>& Results, FString DatabaseName)
+{
+	FString SQL = DatabaseName.IsEmpty() ? TEXT("SHOW TABLES;") 
+										 : TEXT("SHOW TABLES FROM ") + DatabaseName + TEXT(";");
+	if (QueryLink(SQL))
+	{
+		if (MYSQL_RES* QueryRes = mysql_store_result(&MySQL))
+		{
+			Results.Empty();
+			while (MYSQL_ROW Row = mysql_fetch_row(QueryRes))
+			{
+				if (Row[0] != nullptr)
+				{
+					Results.Add(UTF8_TO_TCHAR(Row[0]));
+				}
+			}
+			mysql_free_result(QueryRes);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FMySQL_Link::GetTableStatus(TArray<FMySQL_FieldsData>& Results, FString DatabaseName)
+{
+	FString SQL = TEXT("SHOW TABLE STATUS FROM ") + DatabaseName + TEXT(";");
+	if (QueryLink(SQL))
+	{
+		return GetSelectResults(Results);
+	}
+	return false;
+}
+
+bool FMySQL_Link::GetTableDESC(TArray<FMySQL_FieldsData>& Results, FString TableName, FString DatabaseName)
+{
+	if (!DatabaseName.IsEmpty())
+	{
+		if (!QueryLink(TEXT("Use ") + DatabaseName + TEXT(";"))) return false;
+	}
+	FString SQL = TEXT("DESC ") + TableName + TEXT(";");
+	if (QueryLink(SQL))
+	{
+		return GetSelectResults(Results);
+	}
+	return false;
+}
 
