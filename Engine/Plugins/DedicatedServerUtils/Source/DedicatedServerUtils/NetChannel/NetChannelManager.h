@@ -44,7 +44,7 @@ protected:
 		TSharedPtr<FNetConnectionBase> LocalConnection;
 		TArray<TSharedPtr<FNetConnectionBase>> RemoteConnections;
 		TArray<int32> AliveRemoveConnectionsIndex;
-	}Connections;
+	} Connections;
 
 	ENetLinkState LinkState;
 	bool bAsynchronous;

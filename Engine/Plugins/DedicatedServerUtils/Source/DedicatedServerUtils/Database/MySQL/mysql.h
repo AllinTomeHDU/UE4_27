@@ -35,6 +35,8 @@
   the file is changed so the ABI is broken, you must also update
   the SHARED_LIB_MAJOR_VERSION in cmake/mysql_version.cmake
 */
+#pragma once
+
 
 #ifndef _mysql_h
 #define _mysql_h

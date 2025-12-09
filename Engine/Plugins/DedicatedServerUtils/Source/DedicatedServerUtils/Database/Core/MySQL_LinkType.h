@@ -4,8 +4,34 @@
 #include "MySQL_LinkType.generated.h"
 
 
+struct MYSQL_TIME;
+
 UENUM(BlueprintType)
-enum class EMySQL_VariableType : uint8
+enum class EMySQL_TimeFieldType : uint8
+{
+	Date,			// 仅日期
+	Time,			// 仅时间
+	DateTime,		// 日期+时间
+	TimeStamp,		// MySQL TIMESTAMP
+	Year,           // 年份
+	NewDate,
+	Time2,
+	DateTime2,
+	TimeStamp2,
+	Unknown
+};
+
+namespace DedicatedServerUtils
+{
+	bool IsTypesOfAutomaticRecognition(EMySQL_VariableType InType);
+
+	EMySQL_VariableType FieldTypeToVariableType(const EMySQL_FieldType FieldType);
+
+	bool FStringToMySQLDateTime(const FString& InStr, MYSQL_TIME* InTime, const EMySQL_TimeFieldType InTimeType);
+}
+
+UENUM(BlueprintType)
+enum class EMySQL_FieldType : uint8
 {
 	// === 数值类型 ===
 	TinyInt				UMETA(DisplayName = "TINYINT (1字节，小整数)"),
@@ -78,9 +104,9 @@ enum class EMySQL_VariableType : uint8
 };
 
 UENUM(BlueprintType)
-enum class EMySQL_FieldType : uint8
+enum class EMySQL_VariableType : uint8
 {
-	MYSQL_DECIMAL					UMETA(DisplayName = "Decimal"),		//DECIMAL(M,D)/NUMERIC  M > D ? M+ 2 : D+ 2
+	MYSQL_DECIMAL					UMETA(DisplayName = "Decimal"),		//@@ DECIMAL(M,D)/NUMERIC  M > D ? M+ 2 : D+ 2
 	MYSQL_TINY						UMETA(DisplayName = "Small Int"),	//SMALLINT		2 //s
 	MYSQL_SHORT						UMETA(DisplayName = "Short"),		//SHORT			2 //s
 	MYSQL_LONG						UMETA(DisplayName = "integer"),		//INTEGER		4 //s
@@ -101,7 +127,7 @@ enum class EMySQL_FieldType : uint8
 	MYSQL_DATETIME2					UMETA(DisplayName = "Date Time2"),
 	MYSQL_TIME2						UMETA(DisplayName = "Time2"),
 	MYSQL_JSON			= 245		UMETA(DisplayName = "Json"),		//@@
-	MYSQL_NEWDECIMAL	= 246		UMETA(DisplayName = "New Decimal"),	//
+	MYSQL_NEWDECIMAL	= 246		UMETA(DisplayName = "New Decimal"),	//@@
 	MYSQL_ENUM			= 247		UMETA(DisplayName = "Enum"),		//				1 or 2   65535个
 	MYSQL_SET			= 248		UMETA(DisplayName = "Set"),			//				1,2,4,8
 	MYSQL_TINY_BLOB		= 249		UMETA(DisplayName = "Tiny Blob"),	//@@				//s
@@ -118,10 +144,29 @@ struct DEDICATEDSERVERUTILS_API FMySQL_FieldTypeProperties
 {
 	GENERATED_BODY()
 
-	FMySQL_FieldTypeProperties();
+	FMySQL_FieldTypeProperties() 
+		: VariableType(EMySQL_FieldType::VarChar)
+		, bIsUnsigned(false)
+		, Size(20)
+		, DecimalPoint(0)
+		, bIsNull(false)
+		, bAutoIncrement(false) {}
+	FMySQL_FieldTypeProperties(
+		const EMySQL_FieldType InVariableType,
+		const bool bInIsUnsigned = false,
+		const int32 InSize = 0,
+		const int32 InDecimalPoint = 0,
+		const bool bInIsNull = true,
+		const bool bInAutoIncrement = false
+	)   : VariableType(InVariableType)
+		, bIsUnsigned(bInIsUnsigned)
+		, Size(InSize)
+		, DecimalPoint(InDecimalPoint)
+		, bIsNull(bInIsNull)
+		, bAutoIncrement(bInAutoIncrement) {}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
-	EMySQL_VariableType VariableType;
+	EMySQL_FieldType VariableType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
 	bool bIsUnsigned;
@@ -156,7 +201,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_FieldsData
 	FString Name;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DedicatedServerUtil|Database")
-	EMySQL_FieldType Type;
+	EMySQL_VariableType Type;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DedicatedServerUtil|Database")
 	int32 MaxLength;
@@ -273,15 +318,15 @@ enum class EMySQL_ClientFlag : uint8
 	Client_Multi_Statements,	/* 启用多语句支持 */
 	Client_Multi_Results,		/* 启用多结果集 */
 	Client_PS_Multi_Results,	/* M启用预处理语句（Prepared Statement）下的多结果集返回 */
-	CLIENT_PLUGIN_AUTH,			/* 支持插件式认证 */
+	Client_Plugin_Auth,			/* 支持插件式认证 */
 	client_connect_attrs,		/* 支持连接属性 */
-	CLIENT_Plugin_Auth_Lenenc_Client_Data,	/* 支持更长的认证数据包 */
-	CLIENT_Can_Handle_Expired_Passwords,	/* 支持处理过期密码 */
-	CLIENT_Session_Track,		/* 支持会话状态跟踪 */
-	CLIENT_Deprecate_EOF,		/* 不再使用 EOF 包 */
-	CLIENT_Optional_Resultset_Metadata,		/* 允许服务器省略部分结果集元数据*/
-	CLIENT_Ssl_Verify_Server_Cert = 30,		/* 启用服务器证书验证 */
-	CLIENT_Remember_Options = 31			/* 在连接失败后保留客户端选项 */
+	Client_Plugin_Auth_Lenenc_Client_Data,	/* 支持更长的认证数据包 */
+	Client_Can_Handle_Expired_Passwords,	/* 支持处理过期密码 */
+	Client_Session_Track,		/* 支持会话状态跟踪 */
+	Client_Deprecate_EOF,		/* 不再使用 EOF 包 */
+	Client_Optional_Resultset_Metadata,		/* 允许服务器省略部分结果集元数据*/
+	Client_Ssl_Verify_Server_Cert = 30,		/* 启用服务器证书验证 */
+	Client_Remember_Options = 31			/* 在连接失败后保留客户端选项 */
 };
 
 UENUM(BlueprintType)
@@ -392,3 +437,161 @@ struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceParams
 	FString ToString() const;
 };
 
+UENUM(BlueprintType)
+enum class EMySQL_AlterColumnOpt : uint8
+{
+	ADD,
+	DROP,
+	MODIFY,
+	CHANGE
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_AlterColumnParams
+{
+	GENERATED_BODY()
+
+	FMySQL_AlterColumnParams() {}
+	FMySQL_AlterColumnParams(
+		const EMySQL_AlterColumnOpt InAlterOpt,
+		const FString& InFieldName,
+		const FMySQL_FieldTypeProperties& InFieldType = FMySQL_FieldTypeProperties(),
+		const FString& InNewFieldName = TEXT(""),
+		const FString& InExtra = TEXT("")
+	)   : AlterOpt(InAlterOpt)
+		, FieldName(InFieldName)
+		, FieldType(InFieldType)
+		, NewFieldName(InNewFieldName)
+		, Extra(InExtra) {}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	EMySQL_AlterColumnOpt AlterOpt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString FieldName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FMySQL_FieldTypeProperties FieldType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString NewFieldName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString Extra;
+
+	FString ToString() const;
+};
+
+UENUM(BlueprintType)
+enum class EMySQL_IndexType : uint8
+{
+	INDEX,
+	UNIQUE,
+	FULLTEXT,
+	SPATIAL
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_AlterIndexParams
+{
+	GENERATED_BODY()
+
+	FMySQL_AlterIndexParams() {}
+	FMySQL_AlterIndexParams(
+		const bool bInIsAdd, 
+		const bool bInIsPrimary = false,
+		const EMySQL_IndexType InIndexType = EMySQL_IndexType::INDEX,
+		const FString& InIndexName = TEXT(""),
+		const TArray<FString>& InColumns = {}
+	)   : bIsAdd(bInIsAdd)
+		, bIsPrimaryKey(bInIsPrimary)
+		, IndexType(InIndexType)
+		, IndexName(InIndexName)
+		, Columns(InColumns) {}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	bool bIsAdd;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	bool bIsPrimaryKey;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	EMySQL_IndexType IndexType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString IndexName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TArray<FString> Columns;
+
+	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_AlterForeingParams
+{
+	GENERATED_BODY()
+
+	FMySQL_AlterForeingParams()
+		: bIsAdd(false)
+		, OnDelete(TEXT("CASCADE"))
+		, OnUpdate(TEXT("CASCADE")) {}
+	FMySQL_AlterForeingParams(
+		const bool bInIsAdd,
+		const FString& InForeingKey,
+		const TArray<FString>& InChildFields,
+		const FString& InParentTable,
+		const TArray<FString>& InParentFields,
+		const FString& InOnDelete = TEXT("CASCADE"),
+		const FString& InOnUpdate = TEXT("CASCADE")
+	)   : bIsAdd(bInIsAdd)
+		, ForeingKey(InForeingKey)
+		, ChildFields(InChildFields)
+		, ParentTable(InParentTable)
+		, ParentFields(InParentFields)
+		, OnDelete(InOnDelete)
+		, OnUpdate(InOnUpdate) {}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	bool bIsAdd;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString ForeingKey;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TArray<FString> ChildFields;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString ParentTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	TArray<FString> ParentFields;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString OnDelete;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString OnUpdate;
+
+	FString ToString() const;
+};
+
+USTRUCT(BlueprintType)
+struct DEDICATEDSERVERUTILS_API FMySQL_StmtValue
+{
+	GENERATED_BODY()
+
+	FMySQL_StmtValue() {}
+	FMySQL_StmtValue(const FString& InValue, const EMySQL_FieldType InFieldType)
+		: Value(InValue), FieldType(InFieldType) {}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	FString Value;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DedicatedServerUtil|Database")
+	EMySQL_FieldType FieldType;
+
+	uint32 GetValueTypeLen() const;
+	unsigned long* GetValueTypeLenMemory() const;
+	void GetValue(void** InValue) const;
+};

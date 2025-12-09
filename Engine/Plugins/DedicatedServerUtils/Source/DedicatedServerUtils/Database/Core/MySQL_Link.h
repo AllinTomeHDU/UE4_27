@@ -3,11 +3,9 @@
 #include "CoreMinimal.h"
 #include "MySQL_LinkType.h"
 
-#ifdef TEXT
-#undef TEXT
-#include "../MySQL/mysql.h"
-#endif
-
+struct MYSQL;
+struct MYSQL_STMT;
+struct MYSQL_BIND;
 
 
 struct FMySQL_Link
@@ -24,10 +22,13 @@ public:
 
 	~FMySQL_Link();
 
-	bool InitOptions();
 	bool ConnectMySQL();
-
 	bool QueryLink(const FString& SQL);
+
+	bool QueryLinkStmt(const FString& SQL, const TArray<FMySQL_StmtValue>& InQueryStmtParams);
+	bool PrepareStmtSQL(const FString& SQL);
+	bool PrepareStmtParams(const TArray<FMySQL_StmtValue>& InQueryStmtParams);
+	bool ExecuteStmt();
 
 	bool CreateDatabase(const FString& DatabaseName, EMySQL_Charset Charset = EMySQL_Charset::utf8, bool bAutoSelect = true);
 	bool DropDatabase(const FString& DatabaseName);
@@ -105,6 +106,15 @@ public:
 	bool GetSelectResults(TArray<FMySQL_FieldsData>& Results, const bool bIsStore = true);
 	void PrintResults(const TArray<FMySQL_FieldsData>& Results);
 
+	// Alter
+	bool ChangeDatabaseCharset(const FString& Database, const EMySQL_Charset NewCharset);
+	bool ChangeTableCharset(const FString& Table, const EMySQL_Charset NewCharset, const FString& Database = TEXT(""));
+	bool ChangeTableEngine(const FString& Table, const EMySQL_SaveEngine NewEngine, const FString& Database = TEXT(""));
+	bool ChangeTableName(const FString& OldTable, const FString& NewTable, const FString& Database = TEXT(""));
+	bool AlterTableColumn(const FString& Table, const TArray<FMySQL_AlterColumnParams>& Params, const FString& Database = TEXT(""));
+	bool AlterTableIndex(const FString& Table, const TArray<FMySQL_AlterIndexParams>& Params, const FString& Database = TEXT(""));
+	bool AlterTableForeing(const FString& Table, const FMySQL_AlterForeingParams& Params, const FString& Database = TEXT(""));
+
 	// 事务
 	bool StartTransaction();
 	bool SetAutoCommit(const bool bAuto);
@@ -119,6 +129,20 @@ public:
 	bool GetTableStatus(TArray<FMySQL_FieldsData>& Results, FString DatabaseName);
 	bool GetTableDESC(TArray<FMySQL_FieldsData>& Results, FString TableName, FString DatabaseName = TEXT(""));
 
+	// 连接设置
+	bool SetConnectTimeout(const int32& TimeoutSeconds);
+	bool SetReadTimeout(const int32& TimeoutSeconds);
+	bool SetWriteTimeout(const int32& TimeoutSeconds);
+	bool SetReconnect(const bool bReconnnect = true);
+	bool SetInitCommand(const FString& Command);
+	bool SetCharset(const EMySQL_Charset Charset);
+	bool SetReadDefaultFile(const FString& FilePath);
+	bool SetReadDefaultGroup(const FString& Group);
+	bool SetLocalInFile(const bool bEnable);
+	bool SetSLLKey(const FString& InFile);
+	bool SetSLLCert(const FString& InFile);
+	bool SetSLLCA(const FString& InFile);
+
 private:
 	const FString Host;
 	const FString User;
@@ -128,5 +152,15 @@ private:
 	const TSet<EMySQL_ClientFlag> ClientFlags;
 
 	FString DB;
-	MYSQL MySQL;
+	MYSQL* MySQL;
+
+	MYSQL_STMT* MysqlStmt;
+
+	struct FBindAllocation
+	{
+		FBindAllocation() : Size(0), StmtBind(NULL) {}
+		void Free();
+		uint32 Size;
+		MYSQL_BIND* StmtBind;
+	} BindAllocation;
 };

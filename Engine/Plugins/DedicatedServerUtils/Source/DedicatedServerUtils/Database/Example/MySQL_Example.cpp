@@ -1,6 +1,11 @@
 #include "MySQL_Example.h"
 #include "../Core/MySQL_Link.h"
 
+#ifdef TEXT
+#undef TEXT
+#include "../MySQL/mysql.h"
+#endif
+
 
 void UMySQL_Example::TestMySQL_1()
 {
@@ -22,7 +27,6 @@ void UMySQL_Example::TestMySQL_1()
 	{
 		UE_LOG(LogTemp, Error, TEXT("mysql_options failed..."));
 	}
-
 
 	/**
 	* 连接数据库：32个bit位，从 1 到 1<<32
@@ -229,14 +233,12 @@ void UMySQL_Example::TestMySQL_2()
 
 	const char* host = "127.0.0.1";
 	const char* user = "root";
-	const char* pwd = "";
 	const char* db = "test";
-	const char* table = "playerinfo";
 	const uint32 port = 3306;
-	if (mysql_real_connect(&mysql, host, user, pwd, db, port, 0, 0))
+	if (mysql_real_connect(&mysql, host, user, TCHAR_TO_UTF8(TEST_PASSWORD), db, port, 0, 0))
 	{
 		MYSQL_STMT* stmt_ptr = mysql_stmt_init(&mysql);
-		char* SQL = "INSERT INTO playerinfo VALUES(?,?,?)";	// 防止注入攻击
+		char* SQL = "INSERT INTO players(`id`,`name`,`register_dt`) VALUES(?,?,?)";	// 防止注入攻击
 		if (mysql_stmt_prepare(stmt_ptr, SQL, strlen(SQL)))
 		{
 			UE_LOG(LogTemp, Error, TEXT("mysql_stmt_prepare error: %s"), ANSI_TO_TCHAR(mysql_stmt_error(stmt_ptr)));
@@ -247,6 +249,7 @@ void UMySQL_Example::TestMySQL_2()
 		* 绑定数据进行写入
 		*/
 		MYSQL_BIND params[3];
+		memset(params, 0, sizeof(params));
 
 		char* id = "10003";
 		unsigned long id_len = strlen(id);
@@ -262,11 +265,15 @@ void UMySQL_Example::TestMySQL_2()
 		params[1].length = &name_len;
 		params[1].is_null = 0;
 
-		uint8 sex = true;
-		params[2].buffer_type = MYSQL_TYPE_TINY;
-		params[2].buffer = &sex;
-		params[2].length = 0;
-		params[2].is_null = 0;
+		MYSQL_TIME register_dt;
+		memset(&register_dt, 0, sizeof(register_dt));
+		register_dt.year = 2026;
+		register_dt.month = 12;
+		register_dt.day = 5;
+		register_dt.time_type = MYSQL_TIMESTAMP_DATE;
+		params[2].buffer_type = MYSQL_TYPE_DATE;
+		params[2].buffer = &register_dt;
+		//params[2].is_null = 0;
 
 		if (mysql_stmt_bind_param(stmt_ptr, params))
 		{
@@ -552,7 +559,7 @@ void UMySQL_Example::TestMySQL_4()
 	TArray<EMySQL_ClientFlag> ClientFlags;
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Multi_Statements);
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Compress);
-	ClientFlags.Add(EMySQL_ClientFlag::CLIENT_Remember_Options);
+	ClientFlags.Add(EMySQL_ClientFlag::Client_Remember_Options);
 	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD, 3306, TEXT(""), ClientFlags);
 	//if (MySQL.CreateDatabase(TEXT("game_3")))
 	//{
@@ -696,9 +703,67 @@ void UMySQL_Example::TestMySQL_5()
 	//{
 	//	UE_LOG(LogTemp, Display, TEXT("(%d)%s:%s"), i++, *Tmp.Key, *Tmp.Value);
 	//}
+}
 
+void UMySQL_Example::TestMySQL_6()
+{
+	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD);
 
+	//MySQL.ChangeDatabaseCharset(TEXT("test"), EMySQL_Charset::utf8mb4);
 
-	return;
+	//if (MySQL.SelectDatabase(TEXT("test")))
+	{
+		TArray<FMySQL_AlterColumnParams> Params;
+		//Params.Add(FMySQL_AlterColumnParams(
+		//	EMySQL_AlterColumnOpt::ADD, 
+		//	TEXT("test_field")
+		//));
+		//Params.Add(FMySQL_AlterColumnParams(
+		//	EMySQL_AlterColumnOpt::ADD,
+		//	TEXT("age"), 
+		//	FMySQL_FieldTypeProperties(EMySQL_VariableType::TinyInt, true)
+		//));
+		//Params.Add(FMySQL_AlterColumnParams(
+		//	EMySQL_AlterColumnOpt::DROP,
+		//	TEXT("sex")
+		//));
+		//Params.Add(FMySQL_AlterColumnParams(
+		//	EMySQL_AlterColumnOpt::MODIFY,
+		//	TEXT("dt"),
+		//	FMySQL_FieldTypeProperties(EMySQL_VariableType::Date)
+		//));
+		//Params.Add(FMySQL_AlterColumnParams(
+		//	EMySQL_AlterColumnOpt::CHANGE,
+		//	TEXT("dt"),
+		//	FMySQL_FieldTypeProperties(EMySQL_VariableType::Date),
+		//	FString(TEXT("register_dt"))
+		//));
+		//MySQL.AlterTableColumn(TEXT("playerinfo"), Params);
+	}
+
+	//MySQL.ChangeTableEngine(TEXT("playerinfo"), EMySQL_SaveEngine::InnoDB, TEXT("test"));
+	MySQL.ChangeTableCharset(TEXT("players"), EMySQL_Charset::utf8mb4, TEXT("test"));
+	//MySQL.ChangeTableName(TEXT("playerinfo"), TEXT("players"), TEXT("test"));
+}
+
+void UMySQL_Example::TestMySQL_7()
+{
+	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD);
+
+	if (MySQL.SelectDatabase(TEXT("test")))
+	{
+		TArray<FMySQL_StmtValue> StmtValue;
+		StmtValue.Add(FMySQL_StmtValue(TEXT("47"), EMySQL_FieldType::Int));
+		StmtValue.Add(FMySQL_StmtValue(TEXT("xcx"), EMySQL_FieldType::VarChar));
+		StmtValue.Add(FMySQL_StmtValue(TEXT("2025-12-5"), EMySQL_FieldType::Date));
+		StmtValue.Add(FMySQL_StmtValue(TEXT("aa"), EMySQL_FieldType::VarChar));
+		StmtValue.Add(FMySQL_StmtValue(TEXT("18"), EMySQL_FieldType::Int));
+		MySQL.QueryLinkStmt(TEXT("INSERT INTO players VALUES(?,?,?,?,?)"), StmtValue);
+
+		StmtValue.Empty();
+		StmtValue.Add(FMySQL_StmtValue(TEXT("48"), EMySQL_FieldType::Int));
+		StmtValue.Add(FMySQL_StmtValue(TEXT("dca"), EMySQL_FieldType::VarChar));
+		MySQL.QueryLinkStmt(TEXT("INSERT INTO players(`id`,`name`) VALUES(?,?)"), StmtValue);
+	}
 }
 
