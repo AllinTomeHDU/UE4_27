@@ -1,12 +1,11 @@
 #include "MySQL_LinkType.h"
 #include "UObject/EnumProperty.h"
 
-#ifdef TEXT
-#undef TEXT  
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
 #include "../Official/mysql.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
-#endif
+#include "Windows/HideWindowsPlatformTypes.h"
 
 using namespace DedicatedServerUtils;
 

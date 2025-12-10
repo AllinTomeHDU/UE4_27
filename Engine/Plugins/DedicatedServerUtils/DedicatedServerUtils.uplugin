@@ -29,6 +29,11 @@
 			"Name": "DSUThreadPool",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "DSUNetChannel",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	]
 }

@@ -2,12 +2,11 @@
 #include "DedicatedServerUtils/DedicatedServerUtils.h"
 #include "DedicatedServerUtils/DSUtilsBPLibrary.h"
 
-#ifdef TEXT
-#undef TEXT
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
 #include "../Official/mysql.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
-#endif
+#include "Windows/HideWindowsPlatformTypes.h"
 
 using namespace DedicatedServerUtils;
 
@@ -52,7 +51,8 @@ bool FMySQL_Link::ConnectMySQL()
 		TCHAR_TO_UTF8(*User), 
 		TCHAR_TO_UTF8(*Password), 
 		TCHAR_TO_UTF8(*DB),
-		Port, UnixSocket == TEXT("") ? 0 : TCHAR_TO_UTF8(*UnixSocket), 
+		Port, 
+		TCHAR_TO_UTF8(*UnixSocket), 
 		Flags
 	) != nullptr;
 }
