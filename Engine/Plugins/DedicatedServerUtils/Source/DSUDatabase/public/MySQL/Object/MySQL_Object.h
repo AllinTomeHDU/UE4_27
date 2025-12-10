@@ -2,14 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "../Link/MySQL_LinkType.h"
+#include "MySQL/Link/MySQL_LinkType.h"
 #include "MySQL_Object.generated.h"
 
 struct FMySQL_Link;
 
 
 UCLASS(Blueprintable, BlueprintType)
-class DEDICATEDSERVERUTILS_API UMySQL_Object : public UObject
+class DSUDATABASE_API UMySQL_Object : public UObject
 {
 	GENERATED_BODY()
 

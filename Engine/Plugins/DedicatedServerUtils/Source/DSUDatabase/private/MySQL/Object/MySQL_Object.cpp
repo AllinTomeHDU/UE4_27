@@ -1,5 +1,5 @@
-#include "MySQL_Object.h"
-#include "../Link/MySQL_Link.h"
+#include "MySQL/Object/MySQL_Object.h"
+#include "MySQL/Link/MySQL_Link.h"
 
 
 bool UMySQL_Object::CreateLink(const FMySQLConnectConfig& Config)

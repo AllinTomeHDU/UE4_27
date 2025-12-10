@@ -23,7 +23,7 @@ enum class EMySQL_TimeFieldType : uint8
 	Unknown
 };
 
-namespace DedicatedServerUtils
+namespace DSUDatabase
 {
 	bool IsTypesOfAutomaticRecognition(EMySQL_VariableType InType);
 
@@ -142,7 +142,7 @@ enum class EMySQL_VariableType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_FieldTypeProperties
+struct DSUDATABASE_API FMySQL_FieldTypeProperties
 {
 	GENERATED_BODY()
 
@@ -195,7 +195,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_FieldTypeProperties
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_FieldsData
+struct DSUDATABASE_API FMySQL_FieldsData
 {
 	GENERATED_BODY()
 
@@ -276,7 +276,7 @@ enum class EMySQL_Charset : uint8
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_TableOptions
+struct DSUDATABASE_API FMySQL_TableOptions
 {
 	GENERATED_BODY()
 
@@ -341,7 +341,7 @@ enum class EMySQL_SelectJoinMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_JoinParams
+struct DSUDATABASE_API FMySQL_JoinParams
 {
 	GENERATED_BODY()
 
@@ -358,7 +358,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_JoinParams
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_LimitParams
+struct DSUDATABASE_API FMySQL_LimitParams
 {
 	GENERATED_BODY()
 
@@ -372,7 +372,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_LimitParams
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_UpdateParams
+struct DSUDATABASE_API FMySQL_UpdateParams
 {
 	GENERATED_BODY()
 
@@ -395,7 +395,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_UpdateParams
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceData
+struct DSUDATABASE_API FMySQL_UpdateReplaceData
 {
 	GENERATED_BODY()
 
@@ -417,7 +417,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceData
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_UpdateReplaceParams
+struct DSUDATABASE_API FMySQL_UpdateReplaceParams
 {
 	GENERATED_BODY()
 
@@ -449,7 +449,7 @@ enum class EMySQL_AlterColumnOpt : uint8
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_AlterColumnParams
+struct DSUDATABASE_API FMySQL_AlterColumnParams
 {
 	GENERATED_BODY()
 
@@ -494,7 +494,7 @@ enum class EMySQL_IndexType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_AlterIndexParams
+struct DSUDATABASE_API FMySQL_AlterIndexParams
 {
 	GENERATED_BODY()
 
@@ -530,7 +530,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_AlterIndexParams
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_AlterForeingParams
+struct DSUDATABASE_API FMySQL_AlterForeingParams
 {
 	GENERATED_BODY()
 
@@ -579,7 +579,7 @@ struct DEDICATEDSERVERUTILS_API FMySQL_AlterForeingParams
 };
 
 USTRUCT(BlueprintType)
-struct DEDICATEDSERVERUTILS_API FMySQL_StmtValue
+struct DSUDATABASE_API FMySQL_StmtValue
 {
 	GENERATED_BODY()
 

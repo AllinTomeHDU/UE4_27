@@ -9,7 +9,7 @@ class UMySQL_Object;
 
 
 UCLASS(meta = (BlueprintThreadSafe, ScriptName = "DatabaseManager"))
-class DEDICATEDSERVERUTILS_API UDatabaseManager : public UObject
+class DSUDATABASE_API UDatabaseManager : public UObject
 {
 	GENERATED_BODY()
 

@@ -1,12 +1,11 @@
-#include "MySQL_Example.h"
-#include "../Link/MySQL_Link.h"
+#include "MySQL/Example/MySQL_Example.h"
+#include "MySQL/Link/MySQL_Link.h"
 
-#ifdef TEXT
-#undef TEXT
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
-#include "../Official/mysql.h"
+#include "MySQL/Official/mysql.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
-#endif
+#include "Windows/HideWindowsPlatformTypes.h"
 
 
 void UMySQL_Example::TestMySQL_1()

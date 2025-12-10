@@ -1,19 +1,19 @@
-#include "MySQL_LinkType.h"
+#include "MySQL/Link/MySQL_LinkType.h"
 #include "UObject/EnumProperty.h"
 
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
-#include "../Official/mysql.h"
+#include "MySQL/Official/mysql.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
-using namespace DedicatedServerUtils;
+using namespace DSUDatabase;
 
 
 #if PLATFORM_WINDOWS
 #pragma optimize("",off)
 #endif
-bool DedicatedServerUtils::IsTypesOfAutomaticRecognition(EMySQL_VariableType InType)
+bool DSUDatabase::IsTypesOfAutomaticRecognition(EMySQL_VariableType InType)
 {
 	uint8  Type =  (uint8)InType;
 	return Type != (uint8)EMySQL_VariableType::MYSQL_DECIMAL
@@ -22,7 +22,7 @@ bool DedicatedServerUtils::IsTypesOfAutomaticRecognition(EMySQL_VariableType InT
 		&& !(Type >=  (uint8)EMySQL_VariableType::MYSQL_TINY_BLOB && Type < (uint8)EMySQL_VariableType::MYSQL_GEOMETRY);
 }
 
-EMySQL_VariableType DedicatedServerUtils::FieldTypeToVariableType(const EMySQL_FieldType FieldType)
+EMySQL_VariableType DSUDatabase::FieldTypeToVariableType(const EMySQL_FieldType FieldType)
 {
 	switch (FieldType)
 	{
@@ -88,7 +88,7 @@ EMySQL_VariableType DedicatedServerUtils::FieldTypeToVariableType(const EMySQL_F
 	return EMySQL_VariableType::MYSQL_NULL;
 }
 
-bool DedicatedServerUtils::FStringToMySQLDateTime(const FString& InStr, MYSQL_TIME* InTime, const EMySQL_TimeFieldType InTimeType)
+bool DSUDatabase::FStringToMySQLDateTime(const FString& InStr, MYSQL_TIME* InTime, const EMySQL_TimeFieldType InTimeType)
 {
 	if (!InTime) return false;
 	
@@ -365,7 +365,7 @@ FString FMySQL_AlterForeingParams::ToString() const
 
 uint32 FMySQL_StmtValue::GetValueTypeLen() const
 {
-	if (!DedicatedServerUtils::IsTypesOfAutomaticRecognition(FieldTypeToVariableType(FieldType)))
+	if (!DSUDatabase::IsTypesOfAutomaticRecognition(FieldTypeToVariableType(FieldType)))
 	{
 		return Value.Len();
 	}
@@ -374,7 +374,7 @@ uint32 FMySQL_StmtValue::GetValueTypeLen() const
 
 unsigned long* FMySQL_StmtValue::GetValueTypeLenMemory() const
 {
-	if (!DedicatedServerUtils::IsTypesOfAutomaticRecognition(FieldTypeToVariableType(FieldType)))
+	if (!DSUDatabase::IsTypesOfAutomaticRecognition(FieldTypeToVariableType(FieldType)))
 	{
 		return nullptr;
 	}

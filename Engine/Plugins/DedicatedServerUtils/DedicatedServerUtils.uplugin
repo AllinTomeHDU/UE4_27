@@ -34,6 +34,11 @@
 			"Name": "DSUNetChannel",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "DSUDatabase",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	]
 }
