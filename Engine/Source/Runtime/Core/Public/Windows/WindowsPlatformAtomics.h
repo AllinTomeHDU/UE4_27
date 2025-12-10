@@ -114,37 +114,46 @@ struct CORE_API FWindowsPlatformAtomics
 		#endif
 	}
 
-	static FORCEINLINE int8 InterlockedExchange( volatile int8* Value, int8 Exchange )
+	static FORCEINLINE int8 InterlockedExchange(volatile int8* Value, int8 Exchange)
 	{
-		return (int8)::_InterlockedExchange8((char*)Value, (char)Exchange);
+		return (int8)_InterlockedExchange8(reinterpret_cast<volatile char*>(Value), static_cast<char>(Exchange));
 	}
 
-	static FORCEINLINE int16 InterlockedExchange( volatile int16* Value, int16 Exchange )
+	static FORCEINLINE int16 InterlockedExchange(volatile int16* Value, int16 Exchange)
 	{
-		return (int16)::_InterlockedExchange16((short*)Value, (short)Exchange);
+		return (int16)_InterlockedExchange16(reinterpret_cast<volatile short*>(Value), static_cast<short>(Exchange));
 	}
 
-	static FORCEINLINE int32 InterlockedExchange( volatile int32* Value, int32 Exchange )
+	static FORCEINLINE int32 InterlockedExchange(volatile int32* Value, int32 Exchange)
 	{
-		return (int32)::_InterlockedExchange((long*)Value, (long)Exchange);
+		return static_cast<int32>(
+			_InterlockedExchange(
+				reinterpret_cast<volatile long*>(Value),
+				static_cast<long>(Exchange))
+			);
 	}
 
-	static FORCEINLINE int64 InterlockedExchange( volatile int64* Value, int64 Exchange )
+	static FORCEINLINE int64 InterlockedExchange(volatile int64* Value, int64 Exchange)
 	{
-		#if PLATFORM_64BITS
-			return (int64)::_InterlockedExchange64((long long*)Value, (long long)Exchange);
-		#else
-			// No explicit instruction for 64-bit atomic exchange on 32-bit processors; has to be implemented in terms of CMPXCHG8B
-			for (;;)
+#if PLATFORM_64BITS
+		return static_cast<int64>(
+			_InterlockedExchange64(
+				reinterpret_cast<volatile long long*>(Value),
+				static_cast<long long>(Exchange))
+			);
+#else
+		// No explicit instruction for 64-bit atomic exchange on 32-bit processors; has to be implemented in terms of CMPXCHG8B
+		for (;;)
+		{
+			int64 OldValue = *Value;
+			if (_InterlockedCompareExchange64(Value, Exchange, OldValue) == OldValue)
 			{
-				int64 OldValue = *Value;
-				if (_InterlockedCompareExchange64(Value, Exchange, OldValue) == OldValue)
-				{
-					return OldValue;
-				}
+				return OldValue;
 			}
-		#endif
+		}
+#endif
 	}
+
 
 	static FORCEINLINE void* InterlockedExchangePtr( void*volatile* Dest, void* Exchange )
 	{

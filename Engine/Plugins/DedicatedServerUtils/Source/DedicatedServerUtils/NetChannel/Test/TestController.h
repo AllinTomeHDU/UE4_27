@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../UObject/NetChannelController.h"
+#include "DedicatedServerUtils/NetChannel/UObject/NetChannelController.h"
 #include "TestController.generated.h"
 
 

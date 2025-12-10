@@ -4,13 +4,13 @@
 #include "DatabaseServer.h"
 
 #include "RequiredProgramMainCPPInclude.h"
-#include "MySQL/MysqlProtocols.h"
-#include "DedicatedServerUtils/Database/Core/MySQL_Link.h"
+#include "MySQL/MySQLController.h"
+#include "DedicatedServerUtils/Database/MySQL/Link/MySQL_Link.h"
+#include "DedicatedServerUtils/Database/DatabaseGlobalInfo.h"
 #include "DedicatedServerUtils/NetChannel/NetChannelGlobalInfo.h"
 #include "DedicatedServerUtils/NetChannel/NetChannelManager.h"
 #include "DedicatedServerUtils/Thread/ServerThreadManager.h"
 #include "DedicatedServerUtils/NetChannel/Channel/NetChannelBase.h"
-#include "DedicatedServerUtils/NetChannel/Test/TestController.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
@@ -23,7 +23,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 {
 	GEngineLoop.PreInit(ArgC, ArgV);
 
-	//FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEXT(""));
+	//FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEXT("20212526Hdu."));
 	//if (MySQL.SelectDatabase(TEXT("test")))
 	//{
 	//	TArray<FMySQL_FieldsData> Results;
@@ -32,39 +32,39 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	//}
 	//system("pause");
 
+	FNetChannelGlobalInfo::Get()->Init();
+	FMySQLGlobalInfo::Get()->Init();
 
-	//FNetChannelGlobalInfo::Get()->Init();
+	FNetChannelManager* Server = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
 
-	//FNetChannelManager* Server = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
+	FNetChannelBase::SimpleControllerDelegate.BindLambda(
+		[]()->UClass* { return UMySQLController::StaticClass(); }
+	);
 
-	//FNetChannelBase::SimpleControllerDelegate.BindLambda(
-	//	[]()->UClass* { return UTestController::StaticClass(); }
-	//);
+	if (!Server || !Server->Init())
+	{
+		delete Server;
+		UE_LOG(LogDDServer, Error, TEXT("Server Create Failed"));
+		return -1;
+	}
 
-	//if (!Server || !Server->Init())
-	//{
-	//	delete Server;
-	//	UE_LOG(LogDDServer, Error, TEXT("Server Create Failed"));
-	//	return -1;
-	//}
+	double LastTime = FPlatformTime::Seconds();
+	while (!IsEngineExitRequested())
+	{
+		FPlatformProcess::Sleep(0.03f);
+		double Now = FPlatformTime::Seconds();
+		float DeltaTime = Now - LastTime;
 
-	//double LastTime = FPlatformTime::Seconds();
-	//while (!IsEngineExitRequested())
-	//{
-	//	FPlatformProcess::Sleep(0.03f);
-	//	double Now = FPlatformTime::Seconds();
-	//	float DeltaTime = Now - LastTime;
+		DedicatedServerUtils::FThreadManagement::Get()->Tick(DeltaTime);
+		Server->Tick(DeltaTime);
 
-	//	DedicatedServerUtils::FThreadManagement::Get()->Tick(DeltaTime);
-	//	Server->Tick(DeltaTime);
+		LastTime = Now;
 
-	//	LastTime = Now;
+		//UE_LOG(LogDDServer, Display, TEXT("TickNum:%d"), Num++);
+	}
 
-	//	//UE_LOG(LogDDServer, Display, TEXT("TickNum:%d"), Num++);
-	//}
-
-	//FNetChannelManager::Destroy(Server);
-	//DedicatedServerUtils::FThreadManagement::Destroy();
+	FNetChannelManager::Destroy(Server);
+	DedicatedServerUtils::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();
 	return 0;
