@@ -1,15 +1,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DedicatedServerUtils/NetChannel/UObject/NetChannelController.h"
-#include "DedicatedServerUtils/Database/MySQL/Link/MySQL_LinkType.h"
+#include "DSUNetChannel/UObject/NetChannelController.h"
+#include "MySQL/Link/MySQL_LinkType.h"
 #include "MySQLController.generated.h"
 
 class UMySQL_Object;
 
 
 UCLASS()
-class DEDICATEDSERVERUTILS_API UMySQLController : public UNetChannelController
+class UMySQLController : public UNetChannelController
 {
 	GENERATED_BODY()
 

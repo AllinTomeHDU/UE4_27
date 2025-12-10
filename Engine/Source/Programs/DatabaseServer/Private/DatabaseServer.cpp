@@ -5,12 +5,12 @@
 
 #include "RequiredProgramMainCPPInclude.h"
 #include "MySQL/MySQLController.h"
-#include "DedicatedServerUtils/Database/MySQL/Link/MySQL_Link.h"
-#include "DedicatedServerUtils/Database/DatabaseGlobalInfo.h"
-#include "DedicatedServerUtils/NetChannel/NetChannelGlobalInfo.h"
-#include "DedicatedServerUtils/NetChannel/NetChannelManager.h"
-#include "DedicatedServerUtils/Thread/ServerThreadManager.h"
-#include "DedicatedServerUtils/NetChannel/Channel/NetChannelBase.h"
+#include "MySQL/Link/MySQL_Link.h"
+#include "DatabaseGlobalInfo.h"
+#include "DSUNetChannel/NetChannelGlobalInfo.h"
+#include "DSUNetChannel/NetChannelManager.h"
+#include "DSUThreadPool/ServerThreadManager.h"
+#include "DSUNetChannel/Channel/NetChannelBase.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
@@ -55,7 +55,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 		double Now = FPlatformTime::Seconds();
 		float DeltaTime = Now - LastTime;
 
-		DedicatedServerUtils::FThreadManagement::Get()->Tick(DeltaTime);
+		DSUThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
 		Server->Tick(DeltaTime);
 
 		LastTime = Now;
@@ -64,7 +64,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	}
 
 	FNetChannelManager::Destroy(Server);
-	DedicatedServerUtils::FThreadManagement::Destroy();
+	DSUThreadPool::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();
 	return 0;

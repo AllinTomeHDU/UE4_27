@@ -5,7 +5,7 @@
 #include "DSUThreadPool/ServerThreadManager.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
-using namespace USDThreadPool;
+using namespace DSUThreadPool;
 
 
 FNetChannelDriverUDP::FNetChannelDriverUDP(const ENetLinkState InState)

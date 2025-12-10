@@ -1,10 +1,10 @@
 #include "ServerThreadManager.h"
-using namespace USDThreadPool;
+using namespace DSUThreadPool;
 
 
 TSharedPtr<FThreadManagement> FThreadManagement::ThreadManagement = nullptr;
 
-TSharedRef<FThreadManagement> USDThreadPool::FThreadManagement::Get()
+TSharedRef<FThreadManagement> DSUThreadPool::FThreadManagement::Get()
 {
 	if (!ThreadManagement.IsValid())
 	{
@@ -13,7 +13,7 @@ TSharedRef<FThreadManagement> USDThreadPool::FThreadManagement::Get()
 	return ThreadManagement.ToSharedRef();
 }
 
-void USDThreadPool::FThreadManagement::Destroy()
+void DSUThreadPool::FThreadManagement::Destroy()
 {
 	if (ThreadManagement.IsValid())
 	{
@@ -21,7 +21,7 @@ void USDThreadPool::FThreadManagement::Destroy()
 	}
 }
 
-void USDThreadPool::FThreadManagement::Tick(float DeltaTime)
+void DSUThreadPool::FThreadManagement::Tick(float DeltaTime)
 {
 	CoroutinesManager.Tick(DeltaTime);	// Coordination task
 	ThreadTaskManager.Tick(DeltaTime);	// Thread task

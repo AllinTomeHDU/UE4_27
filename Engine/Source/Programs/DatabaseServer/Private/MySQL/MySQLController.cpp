@@ -1,9 +1,9 @@
 #include "MySQLController.h"
 #include "../Core/DatabaseProtocols.h"
-#include "DedicatedServerUtils/Database/DatabaseGlobalInfo.h"
-#include "DedicatedServerUtils/Database/DatabaseManager.h"
-#include "DedicatedServerUtils/Database/MySQL/Object/MySQL_Object.h"
-#include "DedicatedServerUtils/Database/MySQL/Link/MySQL_Link.h"
+#include "DatabaseGlobalInfo.h"
+#include "DatabaseManager.h"
+#include "MySQL/Object/MySQL_Object.h"
+#include "MySQL/Link/MySQL_Link.h"
 
 
 bool UMySQLController::Post(const FString& InSQL)

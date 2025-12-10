@@ -15,6 +15,7 @@ public class DistributedDedicatedServer : ModuleRules
 		PrivateDependencyModuleNames.Add("ApplicationCore");
 		PrivateDependencyModuleNames.Add("Projects");
 
-		PrivateDependencyModuleNames.Add("DedicatedServerUtils");
+		PrivateDependencyModuleNames.Add("DSUNetChannel");
+		PrivateDependencyModuleNames.Add("DSUThreadPool");
 	}
 }

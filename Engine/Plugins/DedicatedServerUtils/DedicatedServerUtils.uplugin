@@ -16,11 +16,6 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "DedicatedServerUtils",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
 			"Name": "DSUFileHelper",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
