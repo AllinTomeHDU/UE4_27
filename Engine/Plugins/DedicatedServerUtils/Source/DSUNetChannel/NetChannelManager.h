@@ -24,7 +24,7 @@ public:
 
 	UNetChannelController* GetController();
 
-	virtual bool Init();
+	virtual bool Init(int32 InPort = INDEX_NONE);
 	virtual void Tick(float DeltaTime);
 	virtual void Close();
 
@@ -36,8 +36,6 @@ protected:
 	struct FNetConnections
 	{
 		TSharedPtr<FNetConnectionBase> operator[](TSharedPtr<FInternetAddr> InternetAddr);
-		//bool IsAddr(TSharedPtr<FInternetAddr> InternetAddr);
-		//int32 Add(TSharedPtr<FInternetAddr> InternetAddr);
 		void Close(int32 Index);
 		TSharedPtr<FNetConnectionBase> GetEmptyConnection(TSharedPtr<FInternetAddr> InternetAddr);
 
@@ -50,4 +48,5 @@ protected:
 	bool bAsynchronous;
 public:
 	FORCEINLINE ENetLinkState GetLinkState() const { return LinkState; }
+	ENetConnectionState GetLocalConnectState() const;
 };

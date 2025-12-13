@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "MySQL_LinkType.generated.h"
 
-#define TEST_MYSQL_PASSWORD TEXT("20212526Hdu.")
+#define TEST_MYSQL_PASSWORD TEXT("")
 
 struct MYSQL_TIME;
 

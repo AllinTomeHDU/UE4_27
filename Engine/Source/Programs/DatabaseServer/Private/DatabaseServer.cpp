@@ -23,7 +23,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 {
 	GEngineLoop.PreInit(ArgC, ArgV);
 
-	//FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEXT("20212526Hdu."));
+	//FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEXT(""));
 	//if (MySQL.SelectDatabase(TEXT("test")))
 	//{
 	//	TArray<FMySQL_FieldsData> Results;
@@ -36,6 +36,8 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	FMySQLGlobalInfo::Get()->Init();
 
 	FNetChannelManager* Server = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
+	//FNetChannelManager* Client = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
+
 
 	FNetChannelBase::SimpleControllerDelegate.BindLambda(
 		[]()->UClass* { return UMySQLController::StaticClass(); }
@@ -47,6 +49,12 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 		UE_LOG(LogDDServer, Error, TEXT("Server Create Failed"));
 		return -1;
 	}
+	//if (!Client || !Client->Init())
+	//{
+	//	delete Client;
+	//	UE_LOG(LogDDServer, Error, TEXT("Client Create Failed"));
+	//	return -1;
+	//}
 
 	double LastTime = FPlatformTime::Seconds();
 	while (!IsEngineExitRequested())
@@ -57,6 +65,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 
 		DSUThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
 		Server->Tick(DeltaTime);
+		//Client->Tick(DeltaTime);
 
 		LastTime = Now;
 
@@ -64,6 +73,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	}
 
 	FNetChannelManager::Destroy(Server);
+	//FNetChannelManager::Destroy(Client);
 	DSUThreadPool::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();

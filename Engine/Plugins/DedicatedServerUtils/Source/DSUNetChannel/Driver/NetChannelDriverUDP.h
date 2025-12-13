@@ -12,13 +12,13 @@ class FNetChannelDriverUDP : public FNetChannelManager
 public:
 	FNetChannelDriverUDP(const ENetLinkState InState);
 
-	virtual bool Init() override;
+	virtual bool Init(int32 InPort) override;
 	virtual void Tick(float DeltaTime) override;
 	void RunThread();
 	void Listen();
 	virtual void Close() override;
 
 protected:
-	FSocket* Socket;
+	FSocket* Socket = nullptr;
 	bool bStopThread;
 };

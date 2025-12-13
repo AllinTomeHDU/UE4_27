@@ -34,11 +34,12 @@ void FNetChannelManager::Destroy(FNetChannelManager* InInstance)
 
 UNetChannelController* FNetChannelManager::GetController()
 {
+	if (!Connections.LocalConnection) return nullptr;
 	auto Channel = Connections.LocalConnection->GetMainChannel();
 	return Channel ? Channel->GetNetObject<UNetChannelController>() : nullptr;
 }
 
-bool FNetChannelManager::Init()
+bool FNetChannelManager::Init(int32 InPort)
 {
 	return true;
 }
@@ -73,12 +74,15 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			case P_Hello:
 			{
 				FString RemoteVersion;
-				NETCHANNEL_PROTOCOLS_RECV(P_Hello, RemoteVersion);
+				FGuid MainGUID;
+				TArray<FGuid> ChannelGUIDs;
+				NETCHANNEL_PROTOCOLS_RECV(P_Hello, RemoteVersion, MainGUID, ChannelGUIDs);
 				if (!RemoteVersion.IsEmpty())
 				{
 					if (FNetChannelGlobalInfo::Get()->GetInfo().Version == RemoteVersion)
 					{
-						NETCHANNEL_PROTOCOLS_SEND(P_Challenge);
+						NETCHANNEL_PROTOCOLS_SEND(P_Welcom);
+						InConnection->GetMainChannel()->SetGUID(MainGUID);
 						InConnection->SetState(ENetConnectionState::Verify);
 						InConnection->ResetHeartBeat();
 					}
@@ -100,28 +104,10 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 				}
 				break;
 			}
-			case P_Login:
-			{
-				FGuid MainGUID;
-				TArray<FGuid> ChannelGUIDs;
-				NETCHANNEL_PROTOCOLS_RECV(P_Login, MainGUID, ChannelGUIDs);
-				if (MainGUID != FGuid())
-				{
-					InConnection->GetMainChannel()->SetGUID(MainGUID);
-					NETCHANNEL_PROTOCOLS_SEND(P_Welcom);
-					InConnection->SetState(ENetConnectionState::Login);
-				}
-				else
-				{
-					FString ErrorInfo = TEXT("Login failure, GUID is NULL");
-					NETCHANNEL_PROTOCOLS_SEND(P_Failure, ErrorInfo);
-					InConnection->Close();
-				}
-				break;
-			}
 			case P_Join:
 			{
 				InConnection->SetState(ENetConnectionState::Join);
+				//InConnection->GetMainChannel()->InitController();
 				break;
 			}
 		}
@@ -130,15 +116,6 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 	{
 		switch (Head.ProtocolsNumber)
 		{
-			case P_Challenge:
-			{
-				FGuid MainGUID = Connections.LocalConnection->GetMainChannel()->GetGUID();
-				TArray<FGuid> ChannelGUIDs;
-				Connections.LocalConnection->GetActiveChannelGUIDs(ChannelGUIDs);
-				NETCHANNEL_PROTOCOLS_SEND(P_Login, MainGUID, ChannelGUIDs);
-				Connections.LocalConnection->SetState(ENetConnectionState::Login);
-				break;
-			}
 			case P_Welcom:
 			{
 				Connections.LocalConnection->SetState(ENetConnectionState::Join);
@@ -165,6 +142,12 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 		}
 	}
 }
+
+ENetConnectionState FNetChannelManager::GetLocalConnectState() const
+{
+	return Connections.LocalConnection->GetState();
+}
+
 #if PLATFORM_WINDOWS
 #pragma optimize("",on)
 #endif
@@ -178,38 +161,6 @@ TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::operator[](T
 	}
 	return nullptr;
 }
-
-//bool FNetChannelManager::FNetConnections::IsAddr(TSharedPtr<FInternetAddr> InternetAddr)
-//{
-//	for (auto& Index : AliveRemoveConnectionsIndex)
-//	{
-//		TSharedPtr<FNetConnectionBase> Connection = RemoteConnections[Index];
-//		if (*Connection->GetAddr() == *InternetAddr) return true;
-//	}
-//	return false;
-//}
-
-//int32 FNetChannelManager::FNetConnections::Add(TSharedPtr<FInternetAddr> InternetAddr)
-//{
-//	for (int i = 0; i < RemoteConnections.Num(); ++i)
-//	{
-//		if (RemoteConnections[i]->GetState() == ENetConnectionState::UnInit)
-//		{
-//			RemoteConnections[i]->Init();
-//
-//			bool bBindAddr = false;
-//			RemoteConnections[i]->GetAddr()->SetIp(*InternetAddr->ToString(false), bBindAddr);
-//			RemoteConnections[i]->GetAddr()->SetPort(InternetAddr->GetPort());
-//			RemoteConnections[i]->SetState(ENetConnectionState::Login);
-//			
-//			AliveRemoveConnectionsIndex.AddUnique(i);
-//			UE_LOG(LogDSUNetChannel, Display, TEXT("Add a client Connection: %s:%d"), 
-//				*InternetAddr->ToString(false), InternetAddr->GetPort());
-//			return i;
-//		}
-//	}
-//	return INDEX_NONE;
-//}
 
 void FNetChannelManager::FNetConnections::Close(int32 Index)
 {
@@ -233,6 +184,7 @@ TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::GetEmptyConn
 				RemoteConnections[i]->GetAddr()->SetPort(InternetAddr->GetPort());
 
 				RemoteConnections[i]->Lock();
+				//RemoteConnections[i]->Init();
 				AliveRemoveConnectionsIndex.AddUnique(i);
 				return RemoteConnections[i];
 			}

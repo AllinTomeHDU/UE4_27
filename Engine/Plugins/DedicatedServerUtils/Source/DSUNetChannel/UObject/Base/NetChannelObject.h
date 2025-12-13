@@ -19,12 +19,6 @@ class DSUNETCHANNEL_API UNetChannelObject : public UObject
 public:
 	FSimpleNetRecvReturnDelegate RecvDelegate;
 
-	template<typename ...ParamTypes>
-	void Send(uint32 InProtocol, ParamTypes& ...Params)
-	{
-		NETCHANNEL_PROTOCOLS_SEND(InProtocol, Params...);
-	}
-
 protected:
 	virtual void Init();
 	virtual void Tick(float DeltaTime);
@@ -39,4 +33,5 @@ protected:
 
 public:
 	FORCEINLINE const ENetLinkState GetLinkState() const { return LinkState; }
+	FORCEINLINE FNetChannelBase* GetChannel() const { return Channel; }
 };

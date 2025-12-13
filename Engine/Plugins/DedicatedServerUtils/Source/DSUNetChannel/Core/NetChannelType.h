@@ -23,7 +23,6 @@ enum class ENetSocketType : uint8
 enum class ENetConnectionState : uint8
 {
 	UnInit,
-	Login,
 	Verify,
 	Join
 };

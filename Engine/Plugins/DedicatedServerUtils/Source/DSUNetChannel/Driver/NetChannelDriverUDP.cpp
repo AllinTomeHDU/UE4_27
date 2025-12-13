@@ -18,9 +18,12 @@ FNetChannelDriverUDP::FNetChannelDriverUDP(const ENetLinkState InState)
 	Connections.LocalConnection->SetIsMainListen(true);
 }
 
-bool FNetChannelDriverUDP::Init()
+#if PLATFORM_WINDOWS
+#pragma optimize("",off)
+#endif
+bool FNetChannelDriverUDP::Init(int32 InPort)
 {
-	if (!FNetChannelManager::Init()) return false;
+	if (!FNetChannelManager::Init(InPort)) return false;
 
 	if (Connections.LocalConnection)
 	{
@@ -39,7 +42,7 @@ bool FNetChannelDriverUDP::Init()
 			case ENetLinkState::Listen:  // 服务器
 			{
 				Connections.LocalConnection->GetAddr()->SetAnyAddress();
-				Connections.LocalConnection->GetAddr()->SetPort(FNetChannelGlobalInfo::Get()->GetInfo().Port);
+				Connections.LocalConnection->GetAddr()->SetPort(InPort == INDEX_NONE ? FNetChannelGlobalInfo::Get()->GetInfo().Port : InPort);
 
 				// 若端口绑定失败，则根据端口增量重新设置端口，直至设置成功
 				int32 BindPort = SocketSubsystem->BindNextPort(Socket, *Connections.LocalConnection->GetAddr(), 1, 1);
@@ -54,7 +57,7 @@ bool FNetChannelDriverUDP::Init()
 			{
 				bool bBindAddr = false;
 				Connections.LocalConnection->GetAddr()->SetIp(*FNetChannelGlobalInfo::Get()->GetInfo().URL, bBindAddr);
-				Connections.LocalConnection->GetAddr()->SetPort(FNetChannelGlobalInfo::Get()->GetInfo().Port);
+				Connections.LocalConnection->GetAddr()->SetPort(InPort == INDEX_NONE ? FNetChannelGlobalInfo::Get()->GetInfo().Port : InPort);
 				break;
 			}
 		}
@@ -132,6 +135,7 @@ void FNetChannelDriverUDP::RunThread()
 	}
 }
 
+
 void FNetChannelDriverUDP::Listen()
 {
 	uint8 Data[BUFFER_SIZE] = { 0 };
@@ -179,15 +183,21 @@ void FNetChannelDriverUDP::Listen()
 		}
 	}
 }
+#if PLATFORM_WINDOWS
+#pragma optimize("",on)
+#endif
 
 void FNetChannelDriverUDP::Close()
 {
 	FNetChannelManager::Close();
 
-	if (auto Subsystem = FNetConnectionBase::GetSocketSubsystem())
+	if (Socket)
 	{
-		Subsystem->DestroySocket(Socket);
-		Socket = nullptr;
+		if (auto Subsystem = FNetConnectionBase::GetSocketSubsystem())
+		{
+			Subsystem->DestroySocket(Socket);
+			Socket = nullptr;
+		}
 	}
 	bStopThread = true;
 }

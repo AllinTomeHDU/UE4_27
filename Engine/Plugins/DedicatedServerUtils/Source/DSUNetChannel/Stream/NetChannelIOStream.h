@@ -16,7 +16,7 @@ public:
 	template<class T>
 	FNetChannelIOStream& operator<<(T& InValue)
 	{
-		Write(&InValue, sizeof(T));
+		Write((void*)&InValue, sizeof(T));
 		return *this;
 	}
 	template<class T>

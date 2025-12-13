@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "NetChannelType.h"
+#include "../NetChannelManager.h"
 #include "../Channel/NetChannelBase.h"
 #include "../Stream/NetChannelIOStream.h"
 
@@ -84,18 +85,60 @@ public: \
 #define NETCHANNEL_PROTOCOLS_RECV(InProtocols,...) FNetChannelProtocols<InProtocols>::Recv(Channel, __VA_ARGS__);
 
 
+#define NETMANAGER_SEND(NetChannelManager,InProtocols,...) \
+{ \
+	auto Fun_##InProtocols = [__VA_ARGS__](FNetChannelManager* InManager) \
+	{ \
+		if (InManager && InManager->GetController()) \
+		{ \
+			if (auto Channel = InManager->GetController()->GetChannel()) \
+			{ \
+				NETCHANNEL_PROTOCOLS_SEND(InProtocols, __VA_ARGS__); \
+			} \
+		} \
+	}; \
+	Fun_##InProtocols(NetChannelManager); \
+}
+#define NETMANAGER_RECV(NetChannelManager,InProtocols,...) \
+{ \
+	auto Fun_##InProtocols = [&__VA_ARGS__](FNetChannelManager* InManager) \
+	{ \
+		if (InManager && InManager->GetController()) \
+		{ \
+			if (auto Channel = InManager->GetController()->GetChannel()) \
+			{ \
+				NETCHANNEL_PROTOCOLS_RECV(InProtocols, __VA_ARGS__); \
+			} \
+		} \
+	}; \
+	Fun_##InProtocols(NetChannelManager); \
+}
+
+
+
 /**
-* 定义协议
+* 建立连接（三次握手）协议
 */
-DEFINITION_NETCHANNEL_PROTOCOLS(Debug,90000)		// server/client
-DEFINITION_NETCHANNEL_PROTOCOLS(Hello,90001)		// client
-DEFINITION_NETCHANNEL_PROTOCOLS(Challenge,90002)	// server
-DEFINITION_NETCHANNEL_PROTOCOLS(Login,90003)		// client
-DEFINITION_NETCHANNEL_PROTOCOLS(Welcom,90004)		// server
-DEFINITION_NETCHANNEL_PROTOCOLS(Join,90005)			// client
-DEFINITION_NETCHANNEL_PROTOCOLS(Failure,90006)		// server/client
-DEFINITION_NETCHANNEL_PROTOCOLS(Upgrade, 90007)		// server
-DEFINITION_NETCHANNEL_PROTOCOLS(Close,90008)		// client
-DEFINITION_NETCHANNEL_PROTOCOLS(HeartBeat,90009)	// client
+DEFINITION_NETCHANNEL_PROTOCOLS(Debug, 10000)			// server/client
+DEFINITION_NETCHANNEL_PROTOCOLS(Hello, 10001)			// client
+DEFINITION_NETCHANNEL_PROTOCOLS(Welcom, 10002)			// server
+DEFINITION_NETCHANNEL_PROTOCOLS(Join, 10003)			// client
+DEFINITION_NETCHANNEL_PROTOCOLS(Upgrade, 10004)			// server
+DEFINITION_NETCHANNEL_PROTOCOLS(Close, 100005)			// client
+DEFINITION_NETCHANNEL_PROTOCOLS(HeartBeat, 10006)		// client
+
+/*
+* 报错协议
+*/
+DEFINITION_NETCHANNEL_PROTOCOLS(Failure,10010)			// server/client
+DEFINITION_NETCHANNEL_PROTOCOLS(ServerFailure, 10011)	// Server
+DEFINITION_NETCHANNEL_PROTOCOLS(ClientFailure, 10012)	// Client
+
+/*
+* 登录协议
+*/
+DEFINITION_NETCHANNEL_PROTOCOLS(Login,10020)			// Client
+DEFINITION_NETCHANNEL_PROTOCOLS(LoginSuccess,10021)		// Server
+DEFINITION_NETCHANNEL_PROTOCOLS(LoginFailure, 10022)
 
 

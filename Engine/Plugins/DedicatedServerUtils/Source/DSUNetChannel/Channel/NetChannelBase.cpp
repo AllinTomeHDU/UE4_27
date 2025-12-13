@@ -72,6 +72,11 @@ bool FNetChannelBase::Recv(TArray<uint8>& InData)
 	return (!MsgQueue.IsEmpty() && MsgQueue.Dequeue(InData)) ? true : false;
 }
 
+UNetChannelObject* FNetChannelBase::SpawnObject(UClass* InClass)
+{
+	return NewObject<UNetChannelObject>(InClass, InClass);
+}
+
 void FNetChannelBase::SpawnController()
 {
 	RegisterObject(SimpleControllerDelegate, UNetChannelController::StaticClass());
@@ -80,11 +85,6 @@ void FNetChannelBase::SpawnController()
 void FNetChannelBase::SpawnPlayer()
 {
 	RegisterObject(SimplePlayerDelegate, UNetChannelPlayer::StaticClass());
-}
-
-UNetChannelObject* FNetChannelBase::SpawnObject(UClass* InClass)
-{
-	return NewObject<UNetChannelObject>(InClass, InClass);
 }
 
 void FNetChannelBase::RegisterObject(FSimpleReturnDelegate InDelegate, UClass* InObjectClass)
@@ -114,9 +114,20 @@ void FNetChannelBase::RegisterObject(FSimpleReturnDelegate InDelegate, UClass* I
 	{
 		NetworkObject->LinkState = Connection.Pin()->GetLinkState();
 		NetworkObject->Channel = this;
-		NetworkObject->Init();
 	}
 }
 #if PLATFORM_WINDOWS
 #pragma optimize("",on)
 #endif
+
+void FNetChannelBase::InitController()
+{
+	if (NetworkObject.Get())
+	{
+		NetworkObject.Get()->Init();
+	}
+}
+
+void FNetChannelBase::InitPlayer()
+{
+}

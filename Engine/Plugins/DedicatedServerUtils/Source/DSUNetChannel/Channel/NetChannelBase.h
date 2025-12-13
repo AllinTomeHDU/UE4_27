@@ -32,6 +32,9 @@ public:
 	void SpawnController();
 	void SpawnPlayer();
 
+	void InitController();
+	void InitPlayer();
+
 	template<class T>
 	T* GetNetObject()
 	{

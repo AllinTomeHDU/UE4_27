@@ -4,14 +4,14 @@
 FNetChannelIOStream& FNetChannelIOStream::operator<<(FString& InValue)
 {
 	ANSICHAR* Str = TCHAR_TO_UTF8(*InValue);
-	Write(Str, InValue.Len() * sizeof(ANSICHAR));
+	Write(Str, (InValue.Len() + 1) * sizeof(ANSICHAR));
 	return *this;
 }
 
 FNetChannelIOStream& FNetChannelIOStream::operator>>(FString& InValue)
 {
 	InValue = UTF8_TO_TCHAR(StreamPtr);
-	Seek(InValue.Len());
+	Seek(InValue.Len() + 1);
 	return *this;
 }
 

@@ -57,6 +57,11 @@ void FNetConnectionBase::Init()
 	{
 		MainChannel->Init();
 		MainChannel->SpawnController();
+		if (bMainListen)
+		{
+			MainChannel->InitController();
+			MainChannel->InitPlayer();
+		}
 	}
 }
 
@@ -109,8 +114,11 @@ void FNetConnectionBase::Verify()
 	if (auto Channel = GetMainChannel())
 	{
 		FString Version = FNetChannelGlobalInfo::Get()->GetInfo().Version;
+		FGuid MainGUID = GetMainChannel()->GetGUID();
+		TArray<FGuid> ChannelGUIDs;
+		GetActiveChannelGUIDs(ChannelGUIDs);
 
-		NETCHANNEL_PROTOCOLS_SEND(P_Hello, Version);
+		NETCHANNEL_PROTOCOLS_SEND(P_Hello, Version, MainGUID, ChannelGUIDs);
 		SetState(ENetConnectionState::Verify);
 		ResetHeartBeat();
 	}

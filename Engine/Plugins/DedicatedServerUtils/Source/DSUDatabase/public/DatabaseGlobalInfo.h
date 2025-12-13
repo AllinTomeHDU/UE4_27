@@ -4,7 +4,7 @@
 #include "MySQL/Link/MySQL_LinkType.h"
 
 
-class FMySQLGlobalInfo
+class DSUDATABASE_API FMySQLGlobalInfo
 {
 	static FMySQLGlobalInfo* Instance;
 public:

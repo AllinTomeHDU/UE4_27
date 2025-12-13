@@ -23,6 +23,8 @@ protected:
 	virtual void Close() override;
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
+	void DealWithLoginRequest(const FString& UserID, const FString& UserName);
+
 private:
 	UMySQL_Object* ObjectRead;
 	UMySQL_Object* ObjectWrite;
