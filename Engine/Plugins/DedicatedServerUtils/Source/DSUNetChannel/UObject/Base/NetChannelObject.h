@@ -7,7 +7,8 @@
 
 class FNetChannelBase;
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FSimpleNetRecvReturnDelegate, uint32, FNetChannelBase*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FNetChannelJoinReturnDelegate, bool);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FNetChannelRecvReturnDelegate, uint32, FNetChannelBase*);
 
 
 UCLASS(Blueprintable)
@@ -17,7 +18,8 @@ class DSUNETCHANNEL_API UNetChannelObject : public UObject
 
 	friend FNetChannelBase;
 public:
-	FSimpleNetRecvReturnDelegate RecvDelegate;
+	FNetChannelJoinReturnDelegate JoinDelegate;
+	FNetChannelRecvReturnDelegate RecvDelegate;
 
 	bool GetAddrInfo(FNetAddrInfo& AddrInfo);
 

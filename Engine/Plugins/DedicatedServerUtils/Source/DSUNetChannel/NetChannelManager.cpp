@@ -147,9 +147,9 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 		{
 			case P_Welcom:
 			{
-				Connections.LocalConnection->SetState(ENetConnectionState::Join);
 				NETCHANNEL_PROTOCOLS_SEND(P_Join);
 				Connections.LocalConnection->SetLoopHeartBeat(true);
+				Connections.LocalConnection->SetState(ENetConnectionState::Join);
 				break;
 			}
 			case P_Upgrade:
@@ -167,6 +167,14 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 				UE_LOG(LogDSUNetChannel, Error, TEXT("Error: %s"), *ErrorInfo);
 				InConnection->Close();
 				break;
+			}
+		}
+		if (UNetChannelObject* NetObject = Channel->GetNetObject<UNetChannelObject>())
+		{
+			if (NetObject->JoinDelegate.IsBound())
+			{
+				Head.ProtocolsNumber == P_Welcom ? NetObject->JoinDelegate.Broadcast(true)
+												 : NetObject->JoinDelegate.Broadcast(false);
 			}
 		}
 	}

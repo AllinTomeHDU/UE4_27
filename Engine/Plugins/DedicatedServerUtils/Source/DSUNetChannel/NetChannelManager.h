@@ -54,5 +54,6 @@ protected:
 	bool bAsynchronous;
 public:
 	FORCEINLINE ENetLinkState GetLinkState() const { return LinkState; }
+	FORCEINLINE TSharedPtr<FNetConnectionBase> GetLocalConnection() const { return Connections.LocalConnection; }
 	ENetConnectionState GetLocalConnectState() const;
 };

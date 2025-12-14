@@ -14,9 +14,11 @@ public:
 
 	virtual bool Init(int32 InPort) override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void Close() override;
+
+protected:
 	void RunThread();
 	void Listen();
-	virtual void Close() override;
 
 protected:
 	FSocket* Socket = nullptr;
