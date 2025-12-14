@@ -85,33 +85,38 @@ public: \
 #define NETCHANNEL_PROTOCOLS_RECV(InProtocols,...) FNetChannelProtocols<InProtocols>::Recv(Channel, __VA_ARGS__);
 
 
-#define NETMANAGER_SEND(NetChannelManager,InProtocols,...) \
+#define CLIENT_SEND(ClientManager,InProtocols,...) \
+if (ClientManager && ClientManager->GetController()) \
 { \
-	auto Fun_##InProtocols = [__VA_ARGS__](FNetChannelManager* InManager) \
+	if (auto SENDCHANNEL = ClientManager->GetLocalChannel()) \
 	{ \
-		if (InManager && InManager->GetController()) \
-		{ \
-			if (auto Channel = InManager->GetController()->GetChannel()) \
-			{ \
-				NETCHANNEL_PROTOCOLS_SEND(InProtocols,__VA_ARGS__); \
-			} \
-		} \
-	}; \
-	Fun_##InProtocols(NetChannelManager); \
+		FNetChannelProtocols<InProtocols>::Send(SENDCHANNEL,__VA_ARGS__); \
+	} \
 }
-#define NETMANAGER_RECV(NetChannelManager,InProtocols,...) \
+#define CLIENT_RECV(ClientManager,InProtocols,...) \
+if (ClientManager && ClientManager->GetController()) \
 { \
-	auto Fun_##InProtocols = [&__VA_ARGS__](FNetChannelManager* InManager) \
+	if (auto RECVCHANNEL = ClientManager->GetLocalChannel()) \
 	{ \
-		if (InManager && InManager->GetController()) \
-		{ \
-			if (auto Channel = InManager->GetController()->GetChannel()) \
-			{ \
-				NETCHANNEL_PROTOCOLS_RECV(InProtocols,__VA_ARGS__); \
-			} \
-		} \
-	}; \
-	Fun_##InProtocols(NetChannelManager); \
+		FNetChannelProtocols<InProtocols>::Recv(RECVCHANNEL,__VA_ARGS__); \
+	} \
+}
+
+#define SERVER_SEND(ServerManager,AddrInfo,InProtocols,...) \
+if (ServerManager && ServerManager->GetController()) \
+{ \
+	if (auto SENDCHANNEL = ServerManager->GetRemoteChannel(AddrInfo)) \
+	{ \
+		FNetChannelProtocols<InProtocols>::Send(SENDCHANNEL,__VA_ARGS__); \
+	} \
+}
+#define SERVER_RECV(ServerManager,AddrInfo,InProtocols,...) \
+if (ServerManager && ServerManager->GetController()) \
+{ \
+	if (auto RECVCHANNEL = ServerManager->GetRemoteChannel(AddrInfo)) \
+	{ \
+		FNetChannelProtocols<InProtocols>::Recv(RECVCHANNEL,__VA_ARGS__); \
+	} \
 }
 
 

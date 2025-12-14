@@ -24,11 +24,11 @@ protected:
 	virtual void Close() override;
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
-	void DealWithLoginRequest(FString& UserID, FString& UserName);
+	void DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& UserID, FString& UserName);
 
 private:
-	UMySQL_Object* ObjectRead;
-	UMySQL_Object* ObjectWrite;
+	//UMySQL_Object* ObjectRead;
+	//UMySQL_Object* ObjectWrite;
 
 	TSharedPtr<FMySQL_Link> ReadLink;
 	TSharedPtr<FMySQL_Link> WriteLink;

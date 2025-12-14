@@ -34,7 +34,7 @@ struct DSUNETCHANNEL_API FNetBunchHead
 };
 
 USTRUCT(BlueprintType)
-struct FNetConfigInfo
+struct DSUNETCHANNEL_API FNetConfigInfo
 {
 	GENERATED_BODY()
 
@@ -76,4 +76,22 @@ struct FNetConfigInfo
 
 	UPROPERTY()
 	float HeatBeatTimeOutTime;
+};
+
+USTRUCT(BlueprintType)
+struct DSUNETCHANNEL_API FNetAddrInfo
+{
+	GENERATED_BODY()
+
+	FNetAddrInfo()
+		: IP(0), Port(0), GUID(FGuid()) 
+	{}
+
+	FNetAddrInfo(const uint32& InIP, const uint32& InPort, const FGuid& InGUID)
+		: IP(InIP), Port(InPort), GUID(InGUID)
+	{}
+
+	uint32 IP;
+	uint32 Port;
+	FGuid GUID;
 };

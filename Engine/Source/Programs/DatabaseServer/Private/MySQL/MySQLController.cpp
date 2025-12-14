@@ -57,8 +57,8 @@ void UMySQLController::Init()
 {
 	Super::Init();
 
-	ObjectRead = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
-	ObjectWrite = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
+	//ObjectRead = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
+	//ObjectWrite = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
 
 	ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
 	WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
@@ -74,16 +74,17 @@ void UMySQLController::Close()
 {
 	Super::Close();
 
-	if (ObjectRead)
-	{
-		ObjectRead->MarkPendingKill();
-		ObjectRead = nullptr;
-	}
-	if (ObjectWrite)
-	{
-		ObjectWrite->MarkPendingKill();
-		ObjectWrite = nullptr;
-	}
+	//if (ObjectRead)
+	//{
+	//	ObjectRead->MarkPendingKill();
+	//	ObjectRead = nullptr;
+	//}
+	//if (ObjectWrite)
+	//{
+	//	ObjectWrite->MarkPendingKill();
+	//	ObjectWrite = nullptr;
+	//}
+
 }
 
 void UMySQLController::RecvProtocol(uint32 InProtocol)
@@ -94,16 +95,17 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 	{
 		case P_Login:
 		{
+			FNetAddrInfo AddrInfo;
 			FString UserID;
 			FString UserName;
-			NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
-			DealWithLoginRequest(UserID, UserName);
+			NETCHANNEL_PROTOCOLS_RECV(P_Login, AddrInfo, UserID, UserName);
+			DealWithLoginRequest(AddrInfo, UserID, UserName);
 			break;
 		}
 	}
 }
 
-void UMySQLController::DealWithLoginRequest(FString& UserID, FString& UserName)
+void UMySQLController::DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& UserID, FString& UserName)
 {
 	FString TableName = TEXT("player_info");
 	FString SQL = FString::Printf(TEXT("SELECT user_name FROM %s WHERE user_id='%s';"), *TableName, *UserID);
@@ -120,12 +122,12 @@ void UMySQLController::DealWithLoginRequest(FString& UserID, FString& UserName)
 					*TableName, *NowDate, *UserID);
 				if (Post(SQL))
 				{
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, AddrInfo);
 				}
 				else
 				{
 					FString ErrorMsg = TEXT("Update Login Date Failed...");
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
 				}
 			}
 			else
@@ -135,12 +137,12 @@ void UMySQLController::DealWithLoginRequest(FString& UserID, FString& UserName)
 					*TableName, *UserName, *NowDate, *UserID);
 				if (Post(SQL))
 				{
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, AddrInfo);
 				}
 				else
 				{
 					FString ErrorMsg = TEXT("Update UserName Failed...");
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
 				}
 			}
 		}
@@ -155,18 +157,18 @@ void UMySQLController::DealWithLoginRequest(FString& UserID, FString& UserName)
 			);
 			if (Post(SQL))
 			{
-				NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+				NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, AddrInfo);
 			}
 			else
 			{
 				FString ErrorMsg = TEXT("Register Failed...");
-				NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
+				NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
 			}
 		}
 	}
 	else
 	{
 		FString ErrorMsg = TEXT("Datebase Get Failed...");
-		NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
+		NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
 	}
 }

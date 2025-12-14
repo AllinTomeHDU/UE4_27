@@ -29,6 +29,8 @@ public:
 	virtual void Analysis(uint8* InData, int32 BytesNum);
 
 	FNetChannelBase* GetMainChannel();
+	FNetChannelBase* GetNetChannel(const FGuid& InChannelGUID);
+
 	void GetActiveChannelGUIDs(TArray<FGuid>& GUIDs);
 
 	void SendHeatBeat();

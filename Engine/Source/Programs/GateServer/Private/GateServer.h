@@ -6,4 +6,5 @@
 #include "DSUNetChannel/NetChannelManager.h"
 
 
+extern FNetChannelManager* LoginServer = nullptr;
 extern FNetChannelManager* DatabaseClient = nullptr;

@@ -149,8 +149,13 @@ void FNetChannelDriverUDP::Listen()
 			UE_LOG(LogDSUNetChannel, Display, TEXT("Recv a wrong data, size < head"));
 			return;
 		}
+		FNetBunchHead Head = *(FNetBunchHead*)Data;
+
 		if (LinkState == ENetLinkState::Listen)
 		{
+			UE_LOG(LogTemp, Display, TEXT("Server Recv A Protocol from [%s][%d]: %d"), 
+				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber);
+
 			if (auto Connect = Connections[RemoteAddr])
 			{
 				if (Connect->GetState() == ENetConnectionState::Join)
@@ -172,6 +177,9 @@ void FNetChannelDriverUDP::Listen()
 		}
 		else
 		{
+			UE_LOG(LogTemp, Display, TEXT("Client Recv A Protocol from [%s][%d]: %d"),
+				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber);
+
 			if (Connections.LocalConnection->GetState() == ENetConnectionState::Join)
 			{
 				Connections.LocalConnection->Analysis(Data, BytesRead);

@@ -41,6 +41,8 @@ public:
 		return Cast<T>(NetworkObject.Get());
 	}
 
+	bool GetAddrInfo(FNetAddrInfo& AddrInfo);
+
 protected:
 	FGuid GUID;
 	TWeakPtr<FNetConnectionBase> Connection;

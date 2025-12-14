@@ -3,6 +3,7 @@
 #include "../Connection/Base/NetConnectionBase.h"
 #include "../UObject/NetChannelController.h"
 #include "../UObject/NetChannelPlayer.h"
+#include "IPAddress.h"
 
 
 #if PLATFORM_WINDOWS
@@ -130,4 +131,16 @@ void FNetChannelBase::InitController()
 
 void FNetChannelBase::InitPlayer()
 {
+}
+
+bool FNetChannelBase::GetAddrInfo(FNetAddrInfo& AddrInfo)
+{
+	if (Connection.IsValid())
+	{
+		Connection.Pin()->GetAddr()->GetIp(AddrInfo.IP);
+		AddrInfo.Port = Connection.Pin()->GetAddr()->GetPort();
+		AddrInfo.GUID = GUID;
+		return true;
+	}
+	return false;
 }

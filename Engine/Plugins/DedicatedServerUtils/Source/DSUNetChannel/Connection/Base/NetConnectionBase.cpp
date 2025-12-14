@@ -149,7 +149,6 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 		{
 		case P_HeartBeat:
 			ResetHeartBeat();
-			UE_LOG(LogTemp, Display, TEXT("Recv Heat Beat"));
 			break;
 		case P_Close:
 			Close();
@@ -160,9 +159,10 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Display, TEXT("Client Analysis Start:%d"), Head.ProtocolsNumber);
 		switch (Head.ProtocolsNumber)
 		{
+		case P_HeartBeat:
+
 		case P_Debug:
 		default:
 			UpdateObject();
@@ -173,6 +173,18 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 FNetChannelBase* FNetConnectionBase::GetMainChannel()
 {
 	return Channels.IsValidIndex(0) ? &Channels[0] : nullptr;
+}
+
+FNetChannelBase* FNetConnectionBase::GetNetChannel(const FGuid& InChannelGUID)
+{
+	for (auto& Tmp : Channels)
+	{
+		if (Tmp.GetGUID() == InChannelGUID)
+		{
+			return &Tmp;
+		}
+	}
+	return nullptr;
 }
 
 void FNetConnectionBase::GetActiveChannelGUIDs(TArray<FGuid>& GUIDs)
@@ -193,7 +205,6 @@ void FNetConnectionBase::SendHeatBeat()
 		if (Channel->IsValid())
 		{
 			NETCHANNEL_PROTOCOLS_SEND(P_HeartBeat);
-			UE_LOG(LogTemp, Display, TEXT("Send Heat Beat"));
 		}
 	}
 }
@@ -212,6 +223,8 @@ void FNetConnectionBase::CheckTimeOut()
 		UE_LOG(LogTemp, Display, TEXT("Connection timeout..."));
 	}
 }
+
+
 #if PLATFORM_WINDOWS
 #pragma optimize("",on)
 #endif

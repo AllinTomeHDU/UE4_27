@@ -19,6 +19,8 @@ class DSUNETCHANNEL_API UNetChannelObject : public UObject
 public:
 	FSimpleNetRecvReturnDelegate RecvDelegate;
 
+	bool GetAddrInfo(FNetAddrInfo& AddrInfo);
+
 protected:
 	virtual void Init();
 	virtual void Tick(float DeltaTime);

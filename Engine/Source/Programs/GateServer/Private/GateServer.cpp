@@ -15,7 +15,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	GEngineLoop.PreInit(ArgC, ArgV);
 
 	FNetChannelGlobalInfo::Get()->Init();
-	FNetChannelManager* LoginServer = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
+	LoginServer = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
 	DatabaseClient = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Connect, ENetSocketType::UDP);
 
 	FNetChannelBase::SimpleControllerDelegate.BindLambda(

@@ -7,6 +7,8 @@
 #include "Connection/Base/NetConnectionBase.h"
 #include "UObject/NetChannelController.h"
 #include "IPAddress.h"
+#include "Sockets.h"
+#include "SocketSubsystem.h"
 
 
 FNetChannelManager* FNetChannelManager::CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType)
@@ -18,7 +20,6 @@ FNetChannelManager* FNetChannelManager::CreateNetChannelManager(ENetLinkState In
 	case ENetSocketType::TCP:
 		return new FNetChannelDriverTCP(InState);
 	}
-
 	return nullptr;
 }
 
@@ -36,6 +37,35 @@ UNetChannelController* FNetChannelManager::GetController()
 {
 	auto Channel = Connections.LocalConnection->GetMainChannel();
 	return Channel ? Channel->GetNetObject<UNetChannelController>() : nullptr;
+}
+
+FNetChannelBase* FNetChannelManager::GetLocalChannel()
+{
+	return Connections.LocalConnection->GetMainChannel();
+}
+
+FNetChannelBase* FNetChannelManager::GetRemoteChannel(const FNetAddrInfo& AddrInfo)
+{
+	if (auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem())
+	{
+		TSharedRef<FInternetAddr> TempAddr = SocketSubsystem->CreateInternetAddr();
+		TempAddr->SetIp(AddrInfo.IP);
+		TempAddr->SetPort(AddrInfo.Port);
+		if (auto InConnection = Connections[TempAddr])
+		{
+			return InConnection->GetNetChannel(AddrInfo.GUID);
+		}
+	}
+	return nullptr;
+}
+
+UNetChannelObject* FNetChannelManager::GetNetChannelObject(const FNetAddrInfo& AddrInfo)
+{
+	if (auto NetChannel = GetRemoteChannel(AddrInfo))
+	{
+		return NetChannel->GetNetObject<UNetChannelObject>();
+	}
+	return nullptr;
 }
 
 bool FNetChannelManager::Init(int32 InPort)

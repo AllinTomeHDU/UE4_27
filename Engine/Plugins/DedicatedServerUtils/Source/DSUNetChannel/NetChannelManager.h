@@ -3,19 +3,21 @@
 #include "CoreMinimal.h"
 #include "Core/NetChannelType.h"
 
-#ifdef PLATFORM_PROJECT
-#include "Tickable.h"
-#endif
+//#ifdef PLATFORM_PROJECT
+//#include "Tickable.h"
+//#endif
 
 class FNetConnectionBase;
 class FInternetAddr;
 class UNetChannelController;
+class UNetChannelObject;
+class FNetChannelBase;
 
 
 class DSUNETCHANNEL_API FNetChannelManager
-#ifdef PLATFORM_PROJECT
-	: public FTickableGameObject
-#endif
+//#ifdef PLATFORM_PROJECT
+//	: public FTickableGameObject
+//#endif
 {
 public:
 	virtual ~FNetChannelManager() {};
@@ -23,6 +25,10 @@ public:
 	static void Destroy(FNetChannelManager* InInstance);
 
 	UNetChannelController* GetController();
+
+	FNetChannelBase* GetLocalChannel();
+	FNetChannelBase* GetRemoteChannel(const FNetAddrInfo& AddrInfo);
+	UNetChannelObject* GetNetChannelObject(const FNetAddrInfo& AddrInfo);
 
 	virtual bool Init(int32 InPort = INDEX_NONE);
 	virtual void Tick(float DeltaTime);
