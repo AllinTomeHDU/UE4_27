@@ -16,6 +16,7 @@ public:
 		const FString& InUser,
 		const FString& InPassword,
 		const uint32& InPort = 3306,
+		const FString& InDB = TEXT(""),
 		const FString& InUnixSocket = TEXT(""),
 		const TArray<EMySQL_ClientFlag>& InClientFlags = {EMySQL_ClientFlag::Client_Multi_Statements}
 	);
@@ -148,10 +149,10 @@ private:
 	FString User;
 	FString Password;
 	uint32 Port;
+	FString DB;
 	FString UnixSocket;
 	TArray<EMySQL_ClientFlag> ClientFlags;
 
-	FString DB;
 	MYSQL* MySQL;
 
 	MYSQL_STMT* MysqlStmt;

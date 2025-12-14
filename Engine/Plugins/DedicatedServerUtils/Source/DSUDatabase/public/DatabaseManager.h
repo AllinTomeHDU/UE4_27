@@ -6,6 +6,7 @@
 #include "DatabaseManager.generated.h"
 
 class UMySQL_Object;
+struct FMySQL_Link;
 
 
 UCLASS(meta = (BlueprintThreadSafe, ScriptName = "DatabaseManager"))
@@ -16,5 +17,5 @@ class DSUDATABASE_API UDatabaseManager : public UObject
 public:
 	static UMySQL_Object* CreateMySQL_Object(UObject* WorldContextObject, const FMySQLConnectConfig& Config);
 
-
+	static TSharedPtr<FMySQL_Link> CreateMySQL_Link(const FMySQLConnectConfig& Config);
 };

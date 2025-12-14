@@ -9,13 +9,9 @@ bool UMySQL_Object::CreateLink(const FMySQLConnectConfig& Config)
 		Config.User,
 		Config.Password,
 		Config.Port,
+		Config.Database,
 		Config.UnixSocket,
 		Config.ClientFlags
 	));
-	if (!Link) return false;
-	if (!Config.Database.IsEmpty())
-	{
-		return Link->SelectDatabase(Config.Database);
-	}
-	return true;
+	return Link != nullptr;
 }

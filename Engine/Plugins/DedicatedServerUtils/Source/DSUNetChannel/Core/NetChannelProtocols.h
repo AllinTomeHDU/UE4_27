@@ -93,7 +93,7 @@ public: \
 		{ \
 			if (auto Channel = InManager->GetController()->GetChannel()) \
 			{ \
-				NETCHANNEL_PROTOCOLS_SEND(InProtocols, __VA_ARGS__); \
+				NETCHANNEL_PROTOCOLS_SEND(InProtocols,__VA_ARGS__); \
 			} \
 		} \
 	}; \
@@ -107,7 +107,7 @@ public: \
 		{ \
 			if (auto Channel = InManager->GetController()->GetChannel()) \
 			{ \
-				NETCHANNEL_PROTOCOLS_RECV(InProtocols, __VA_ARGS__); \
+				NETCHANNEL_PROTOCOLS_RECV(InProtocols,__VA_ARGS__); \
 			} \
 		} \
 	}; \

@@ -9,21 +9,46 @@
 
 bool UMySQLController::Post(const FString& InSQL)
 {
-	if (!InSQL.IsEmpty() && ObjectWrite)
+	//if (InSQL.IsEmpty()) return false;
+	//if (!ObjectWrite)
+	//{
+	//	ObjectWrite = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
+	//	if (!ObjectWrite) return false;
+	//}
+	//return ObjectWrite->GetLink()->QueryLink(InSQL);
+
+	if (InSQL.IsEmpty()) return false;
+	if (!WriteLink)
 	{
-		return ObjectWrite->GetLink()->QueryLink(InSQL);
+		WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+		if (!WriteLink) return false;
 	}
-	return false;
+	return WriteLink->QueryLink(InSQL);
 }
 
 bool UMySQLController::Get(const FString& InSQL, TArray<FMySQL_FieldsData>& Results)
 {
-	if (!InSQL.IsEmpty() && ObjectRead)
+	//if (InSQL.IsEmpty()) return false;
+	//if (!ObjectRead)
+	//{
+	//	ObjectRead = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
+	//	if (!ObjectRead) return false;
+	//}
+	//if (ObjectRead->GetLink()->QueryLink(InSQL))
+	//{
+	//	return ObjectRead->GetLink()->GetSelectResults(Results);
+	//}
+	//return false;
+
+	if (InSQL.IsEmpty()) return false;
+	if (!ReadLink)
 	{
-		if (ObjectRead->GetLink()->QueryLink(InSQL))
-		{
-			return ObjectRead->GetLink()->GetSelectResults(Results);
-		}
+		ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+		if (!ReadLink) return false;
+	}
+	if (ReadLink->QueryLink(InSQL))
+	{
+		return ReadLink->GetSelectResults(Results);
 	}
 	return false;
 }
@@ -34,6 +59,9 @@ void UMySQLController::Init()
 
 	ObjectRead = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
 	ObjectWrite = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
+
+	ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+	WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
 }
 
 void UMySQLController::Tick(float DeltaTime)
@@ -66,7 +94,8 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 	{
 		case P_Login:
 		{
-			FString UserID, UserName;
+			FString UserID;
+			FString UserName;
 			NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
 			DealWithLoginRequest(UserID, UserName);
 			break;
@@ -74,7 +103,7 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 	}
 }
 
-void UMySQLController::DealWithLoginRequest(const FString& UserID, const FString& UserName)
+void UMySQLController::DealWithLoginRequest(FString& UserID, FString& UserName)
 {
 	FString TableName = TEXT("player_info");
 	FString SQL = FString::Printf(TEXT("SELECT user_name FROM %s WHERE user_id='%s';"), *TableName, *UserID);
@@ -82,7 +111,40 @@ void UMySQLController::DealWithLoginRequest(const FString& UserID, const FString
 	if (Get(SQL, Results))
 	{
 		FString NowDate = FDateTime::Now().ToString(TEXT("%Y-%m-%d"));
-		if (Results.Num() == 0)
+		if (Results.Num() > 0 && Results[0].DataValues.Num() > 0)
+		{
+			// 登录
+			if (UserName == Results[0].DataValues[0])
+			{
+				SQL = FString::Printf(TEXT("UPDATE %s SET login_date='%s' WHERE user_id='%s';"),
+					*TableName, *NowDate, *UserID);
+				if (Post(SQL))
+				{
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+				}
+				else
+				{
+					FString ErrorMsg = TEXT("Update Login Date Failed...");
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
+				}
+			}
+			else
+			{
+				// 更新用户名
+				SQL = FString::Printf(TEXT("UPDATE %s SET user_name='%s',login_date='%s' WHERE user_id='%s';"),
+					*TableName, *UserName, *NowDate, *UserID);
+				if (Post(SQL))
+				{
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+				}
+				else
+				{
+					FString ErrorMsg = TEXT("Update UserName Failed...");
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
+				}
+			}
+		}
+		else
 		{
 			// 注册
 			TArray<FString> Fields = { TEXT("user_id"), TEXT("user_name"), TEXT("login_date"), TEXT("register_date") };
@@ -99,39 +161,6 @@ void UMySQLController::DealWithLoginRequest(const FString& UserID, const FString
 			{
 				FString ErrorMsg = TEXT("Register Failed...");
 				NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
-			}
-		}
-		else
-		{
-			// 登录
-			if (UserName == Results[0].DataValues[0])
-			{
-				SQL = FString::Printf(TEXT("UPDATE %s SET login_date='%s' WHERE user_id='%s';"), 
-									  *TableName, *NowDate, *UserID);
-				if (Post(SQL))
-				{
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
-				}
-				else
-				{
-					FString ErrorMsg = TEXT("Update Login Date Failed...");
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
-				}
-			}
-			else
-			{
-				// 更新用户名
-				SQL = FString::Printf(TEXT("UPDATE %s SET user_name='%s',login_date='%s' WHERE user_id='%s';"),
-									  *TableName, *UserName, *NowDate, *UserID);
-				if (Post(SQL))
-				{
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
-				}
-				else
-				{
-					FString ErrorMsg = TEXT("Update UserName Failed...");
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
-				}
 			}
 		}
 	}

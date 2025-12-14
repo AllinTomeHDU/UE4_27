@@ -138,6 +138,7 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 				TArray<uint8> InNewData(InData, BytesNum);
 				Channel->AddMsg(InNewData);
 			}
+			UE_LOG(LogTemp, Display, TEXT("Analysis UpdateObject"));
 			Channel->RecvProtocol(Head.ProtocolsNumber);
 		}
 	};
@@ -159,6 +160,7 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 	}
 	else
 	{
+		UE_LOG(LogTemp, Display, TEXT("Client Analysis Start:%d"), Head.ProtocolsNumber);
 		switch (Head.ProtocolsNumber)
 		{
 		case P_Debug:

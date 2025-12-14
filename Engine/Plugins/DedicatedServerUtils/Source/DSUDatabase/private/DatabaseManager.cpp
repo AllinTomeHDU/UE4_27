@@ -1,5 +1,6 @@
 #include "DatabaseManager.h"
 #include "MySQL/Object/MySQL_Object.h"
+#include "MySQL/Link/MySQL_Link.h"
 
 
 UMySQL_Object* UDatabaseManager::CreateMySQL_Object(UObject* WorldContextObject, const FMySQLConnectConfig& Config)
@@ -29,6 +30,10 @@ UMySQL_Object* UDatabaseManager::CreateMySQL_Object(UObject* WorldContextObject,
 #endif
 		};
 
+	//MySQL = CallMainThreadWork();
+	UE_LOG(LogTemp, Warning, TEXT("Current Thread: %d, GameThread: %d"),
+		FPlatformTLS::GetCurrentThreadId(), GGameThreadId);
+
 	if (FPlatformTLS::GetCurrentThreadId() == GGameThreadId)
 	{
 		MySQL = CallMainThreadWork();
@@ -50,4 +55,17 @@ UMySQL_Object* UDatabaseManager::CreateMySQL_Object(UObject* WorldContextObject,
 	}
 
 	return MySQL;
+}
+
+TSharedPtr<FMySQL_Link> UDatabaseManager::CreateMySQL_Link(const FMySQLConnectConfig& Config)
+{
+	return MakeShareable(new FMySQL_Link(
+		Config.Host,
+		Config.User,
+		Config.Password,
+		Config.Port,
+		Config.Database,
+		Config.UnixSocket,
+		Config.ClientFlags
+	));
 }

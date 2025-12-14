@@ -34,7 +34,6 @@ void FNetChannelManager::Destroy(FNetChannelManager* InInstance)
 
 UNetChannelController* FNetChannelManager::GetController()
 {
-	if (!Connections.LocalConnection) return nullptr;
 	auto Channel = Connections.LocalConnection->GetMainChannel();
 	return Channel ? Channel->GetNetObject<UNetChannelController>() : nullptr;
 }

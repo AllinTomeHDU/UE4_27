@@ -561,7 +561,7 @@ void UMySQL_Example::TestMySQL_4()
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Multi_Statements);
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Compress);
 	ClientFlags.Add(EMySQL_ClientFlag::Client_Remember_Options);
-	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD, 3306, TEXT(""), ClientFlags);
+	FMySQL_Link MySQL(TEXT("127.0.0.1"), TEXT("root"), TEST_PASSWORD, 3306, TEXT(""), TEXT(""), ClientFlags);
 	//if (MySQL.CreateDatabase(TEXT("game_3")))
 	//{
 	//	FMySQL_TableOptions TableOptions;

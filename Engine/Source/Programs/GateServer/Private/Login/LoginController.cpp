@@ -29,7 +29,35 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 			FString UserID;
 			FString UserName;
 			NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
-			NETMANAGER_SEND(DatabaseClient, P_Login, UserID, UserName);
+			if (DatabaseClient && DatabaseClient->GetController())
+			{
+				if (auto ClientChannel = DatabaseClient->GetController()->GetChannel())
+				{
+					TArray<uint8> Buffer;
+					FNetChannelIOStream Stream(Buffer);
+					FNetBunchHead Head;
+					Head.ProtocolsNumber = (uint32)P_Login; 
+					Head.ChannelGUID = ClientChannel->GetGUID();
+					Stream << Head;
+					Stream << UserID;
+					Stream << UserName;
+					ClientChannel->Send(Buffer);
+				}
+			}
+			//NETMANAGER_SEND(DatabaseClient, P_Login, UserID, UserName);
+			//{
+			//	auto Fun_LoginProtocol = [UserID, UserName]()
+			//	{
+			//		if (DatabaseClient && DatabaseClient->GetController())
+			//		{
+			//			if (auto Channel = DatabaseClient->GetController()->GetChannel())
+			//			{
+			//				NETCHANNEL_PROTOCOLS_SEND(P_Login, UserID, UserName);
+			//			}
+			//		}
+			//	};
+			//	Fun_LoginProtocol();
+			//}
 			break;
 		}
 		case P_LoginSuccess:

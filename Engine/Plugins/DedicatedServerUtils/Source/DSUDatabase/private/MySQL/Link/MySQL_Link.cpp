@@ -14,11 +14,12 @@ using namespace DSUDatabase;
 #pragma optimize("",off)
 #endif
 FMySQL_Link::FMySQL_Link(const FString& InHost, const FString& InUser, const FString& InPassword, const uint32& InPort, 
-						 const FString& InUnixSocket, const TArray<EMySQL_ClientFlag>& InClientFlags)
+						 const FString& InDB, const FString& InUnixSocket, const TArray<EMySQL_ClientFlag>& InClientFlags)
 	: Host(InHost)
 	, User(InUser)
 	, Password(InPassword)
 	, Port(InPort)
+	, DB(InDB)
 	, UnixSocket(InUnixSocket)
 	, ClientFlags(InClientFlags)
 	, MySQL(new MYSQL())

@@ -6,6 +6,7 @@
 #include "MySQLController.generated.h"
 
 class UMySQL_Object;
+struct FMySQL_Link;
 
 
 UCLASS()
@@ -23,9 +24,12 @@ protected:
 	virtual void Close() override;
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
-	void DealWithLoginRequest(const FString& UserID, const FString& UserName);
+	void DealWithLoginRequest(FString& UserID, FString& UserName);
 
 private:
 	UMySQL_Object* ObjectRead;
 	UMySQL_Object* ObjectWrite;
+
+	TSharedPtr<FMySQL_Link> ReadLink;
+	TSharedPtr<FMySQL_Link> WriteLink;
 };
