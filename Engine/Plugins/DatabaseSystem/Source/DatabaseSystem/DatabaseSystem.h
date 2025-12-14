@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogDSUDatabase, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogDatabaseSystem, Log, All);
 
 
-class FDSUDatabaseModule : public IModuleInterface
+class FDatabaseSystemModule : public IModuleInterface
 {
 public:
 

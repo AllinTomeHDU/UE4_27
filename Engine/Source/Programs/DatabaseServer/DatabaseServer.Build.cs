@@ -15,8 +15,7 @@ public class DatabaseServer : ModuleRules
 		PrivateDependencyModuleNames.Add("ApplicationCore");
 		PrivateDependencyModuleNames.Add("Projects");
 
-		PrivateDependencyModuleNames.Add("DSUDatabase");
+		PrivateDependencyModuleNames.Add("DatabaseSystem");
 		PrivateDependencyModuleNames.Add("DSUNetChannel");
-		PrivateDependencyModuleNames.Add("DSUThreadPool");
 	}
 }

@@ -3,7 +3,7 @@
 using UnrealBuildTool;
 using System.IO;
 
-public class DSUDatabase : ModuleRules
+public class DatabaseSystem : ModuleRules
 {
 	public string ProjectDirectory
 	{
@@ -32,7 +32,7 @@ public class DSUDatabase : ModuleRules
 		RuntimeDependencies.Add(ProjectFileFullName);
 	}
 
-	public DSUDatabase(ReadOnlyTargetRules Target) : base(Target)
+	public DatabaseSystem(ReadOnlyTargetRules Target) : base(Target)
 	{
 		bEnableUndefinedIdentifierWarnings = false;
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;

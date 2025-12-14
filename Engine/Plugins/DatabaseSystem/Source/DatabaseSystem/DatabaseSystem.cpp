@@ -1,17 +1,17 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "DSUDatabase.h"
+#include "DatabaseSystem.h"
 
-#define LOCTEXT_NAMESPACE "FDSUDatabaseModule"
-DEFINE_LOG_CATEGORY(LogDSUDatabase);
+#define LOCTEXT_NAMESPACE "FDatabaseSystemModule"
+DEFINE_LOG_CATEGORY(LogDatabaseSystem);
 
 
-void FDSUDatabaseModule::StartupModule()
+void FDatabaseSystemModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
-void FDSUDatabaseModule::ShutdownModule()
+void FDatabaseSystemModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
@@ -19,4 +19,4 @@ void FDSUDatabaseModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FDSUDatabaseModule, DSUDatabase)
+IMPLEMENT_MODULE(FDatabaseSystemModule, DatabaseSystem)

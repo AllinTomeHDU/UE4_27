@@ -9,7 +9,7 @@ struct FMySQL_Link;
 
 
 UCLASS(Blueprintable, BlueprintType)
-class DSUDATABASE_API UMySQL_Object : public UObject
+class DATABASESYSTEM_API UMySQL_Object : public UObject
 {
 	GENERATED_BODY()
 

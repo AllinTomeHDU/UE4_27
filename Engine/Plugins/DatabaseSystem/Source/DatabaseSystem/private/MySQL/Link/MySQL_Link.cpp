@@ -1,6 +1,5 @@
 #include "MySQL/Link/MySQL_Link.h"
-#include "DSUDatabase/DSUDatabase.h"
-
+#include "DatabaseSystem/DatabaseSystem.h"
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
 #include "MySQL/Official/mysql.h"
@@ -73,7 +72,7 @@ bool FMySQL_Link::QueryLink(const FString& SQL)
 			return true;
 		}
 	}
-	UE_LOG(LogDSUDatabase, Error, TEXT("mysql_query failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+	UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_query failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 	return false;
 }
 
@@ -94,7 +93,7 @@ bool FMySQL_Link::PrepareStmtSQL(const FString& SQL)
 		Ret = mysql_stmt_prepare(MysqlStmt, TCHAR_TO_UTF8(*SQL), SQL.Len());
 		if (Ret != 0)
 		{
-			UE_LOG(LogDSUDatabase, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
+			UE_LOG(LogDatabaseSystem, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
 			return false;
 		}
 	}
@@ -105,13 +104,13 @@ bool FMySQL_Link::PrepareStmtSQL(const FString& SQL)
 			Ret = mysql_stmt_prepare(MysqlStmt, TCHAR_TO_UTF8(*SQL), SQL.Len());
 			if (Ret != 0)
 			{
-				UE_LOG(LogDSUDatabase, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
+				UE_LOG(LogDatabaseSystem, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
 				return false;
 			}
 		}
 		else
 		{
-			UE_LOG(LogDSUDatabase, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
+			UE_LOG(LogDatabaseSystem, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
 			return false;
 		}
 	}
@@ -144,7 +143,7 @@ bool FMySQL_Link::PrepareStmtParams(const TArray<FMySQL_StmtValue>& InQueryStmtP
 		{
 			return true;
 		}
-		UE_LOG(LogDSUDatabase, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
 	}
 	return false;
 }
@@ -154,7 +153,7 @@ bool FMySQL_Link::ExecuteStmt()
 	if (mysql_stmt_execute(MysqlStmt) != 0)
 	{
 		BindAllocation.Free();
-		UE_LOG(LogDSUDatabase, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("error: %s"), UTF8_TO_TCHAR(mysql_stmt_error(MysqlStmt)));
 		return false;
 	}
 	return true;
@@ -199,7 +198,7 @@ bool FMySQL_Link::SelectDatabase(const FString& DatabaseName)
 			}
 		}
 	}
-	UE_LOG(LogDSUDatabase, Error, TEXT("SelectDatabase failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+	UE_LOG(LogDatabaseSystem, Error, TEXT("SelectDatabase failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 	return false;
 }
 
@@ -498,7 +497,7 @@ bool FMySQL_Link::SelectData(TArray<FMySQL_FieldsData>& Results, const FString& 
 	{
 		return true;
 	}
-	UE_LOG(LogDSUDatabase, Error, TEXT("SelectData failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+	UE_LOG(LogDatabaseSystem, Error, TEXT("SelectData failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 	return false;
 }
 
@@ -544,7 +543,7 @@ bool FMySQL_Link::GetSelectResults(TArray<FMySQL_FieldsData>& Results, const boo
 		mysql_free_result(ResultValues);
 		return true;
 	}
-	UE_LOG(LogDSUDatabase, Error, TEXT("mysql_store_result failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+	UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_store_result failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 	return false;
 }
 
@@ -808,7 +807,7 @@ bool FMySQL_Link::SetConnectTimeout(const int32& TimeoutSeconds)
 	unsigned int Timeout = static_cast<unsigned int>(TimeoutSeconds);
 	if (mysql_options(MySQL, MYSQL_OPT_CONNECT_TIMEOUT, &Timeout) != 0) 
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -820,7 +819,7 @@ bool FMySQL_Link::SetReadTimeout(const int32& TimeoutSeconds)
 	unsigned int Timeout = static_cast<unsigned int>(TimeoutSeconds);
 	if (mysql_options(MySQL, MYSQL_OPT_READ_TIMEOUT, &Timeout) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -832,7 +831,7 @@ bool FMySQL_Link::SetWriteTimeout(const int32& TimeoutSeconds)
 	unsigned int Timeout = static_cast<unsigned int>(TimeoutSeconds);
 	if (mysql_options(MySQL, MYSQL_OPT_WRITE_TIMEOUT, &Timeout) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -842,7 +841,7 @@ bool FMySQL_Link::SetReconnect(const bool bReconnnect)
 {
 	if (mysql_options(MySQL, MYSQL_OPT_RECONNECT, &bReconnnect) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -854,7 +853,7 @@ bool FMySQL_Link::SetInitCommand(const FString& Command)
 	const char* InitCmd = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_INIT_COMMAND, InitCmd) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -866,7 +865,7 @@ bool FMySQL_Link::SetCharset(const EMySQL_Charset Charset)
 	const char* CharsetCstr = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_SET_CHARSET_NAME, CharsetCstr) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -878,7 +877,7 @@ bool FMySQL_Link::SetReadDefaultFile(const FString& FilePath)
 	const char* FilePathCstr = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_READ_DEFAULT_FILE, FilePathCstr) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -890,7 +889,7 @@ bool FMySQL_Link::SetReadDefaultGroup(const FString& Group)
 	const char* GroupCstr = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_READ_DEFAULT_GROUP, GroupCstr) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -901,7 +900,7 @@ bool FMySQL_Link::SetLocalInFile(const bool bEnable)
 	unsigned int EnableInFile = bEnable;
 	if (mysql_options(MySQL, MYSQL_OPT_LOCAL_INFILE, &EnableInFile) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -913,7 +912,7 @@ bool FMySQL_Link::SetSLLKey(const FString& InFile)
 	const char* InFileCstr = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_OPT_SSL_KEY, InFileCstr) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -925,7 +924,7 @@ bool FMySQL_Link::SetSLLCert(const FString& InFile)
 	const char* InFileCstr = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_OPT_SSL_CERT, InFileCstr) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;
@@ -937,7 +936,7 @@ bool FMySQL_Link::SetSLLCA(const FString& InFile)
 	const char* InFileCstr = Converted.Get();
 	if (mysql_options(MySQL, MYSQL_OPT_SSL_CA, InFileCstr) != 0)
 	{
-		UE_LOG(LogDSUDatabase, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
+		UE_LOG(LogDatabaseSystem, Error, TEXT("mysql_options failed: %s"), UTF8_TO_TCHAR(mysql_error(MySQL)));
 		return false;
 	}
 	return true;

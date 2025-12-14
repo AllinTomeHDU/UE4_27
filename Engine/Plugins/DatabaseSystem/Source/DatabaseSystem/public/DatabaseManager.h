@@ -10,7 +10,7 @@ struct FMySQL_Link;
 
 
 UCLASS(meta = (BlueprintThreadSafe, ScriptName = "DatabaseManager"))
-class DSUDATABASE_API UDatabaseManager : public UObject
+class DATABASESYSTEM_API UDatabaseManager : public UObject
 {
 	GENERATED_BODY()
 

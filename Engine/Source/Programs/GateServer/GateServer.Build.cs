@@ -16,6 +16,5 @@ public class GateServer : ModuleRules
 		PrivateDependencyModuleNames.Add("Projects");
 
 		PrivateDependencyModuleNames.Add("DSUNetChannel");
-		PrivateDependencyModuleNames.Add("DSUThreadPool");
 	}
 }

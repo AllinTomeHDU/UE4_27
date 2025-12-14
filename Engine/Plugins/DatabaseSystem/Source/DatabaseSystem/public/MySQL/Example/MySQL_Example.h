@@ -8,7 +8,7 @@
 
 
 UCLASS()
-class DSUDATABASE_API UMySQL_Example : public UObject
+class DATABASESYSTEM_API UMySQL_Example : public UObject
 {
 	GENERATED_BODY()
 
