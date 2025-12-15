@@ -7,30 +7,45 @@
 #include "SocketSubsystem.h"
 using namespace DSUThreadPool;
 
-
+#if PLATFORM_WINDOWS
+#pragma optimize("",off)
+#endif
 FNetChannelDriverUDP::FNetChannelDriverUDP(const ENetLinkState InState)
 {
 	LinkState = InState;
 	bAsynchronous = LinkState == ENetLinkState::Listen;
 	bStopThread = false;
-
-	Connections.LocalConnection = MakeShareable(new FNetConnectionUDP());
-	Connections.LocalConnection->SetIsMainListen(true);
 }
 
-#if PLATFORM_WINDOWS
-#pragma optimize("",off)
-#endif
 bool FNetChannelDriverUDP::Init(int32 InPort)
 {
 	if (!FNetChannelManager::Init(InPort)) return false;
+
+	FString IpStr = FNetChannelGlobalInfo::Get()->GetInfo().URL;
+	uint32 Port = InPort == INDEX_NONE ? FNetChannelGlobalInfo::Get()->GetInfo().Port : InPort;
+	return Bind(FNetAddr(IpStr, Port));
+}
+
+bool FNetChannelDriverUDP::Bind(const FNetAddr& InAddr)
+{
+	if (!FNetChannelManager::Bind(InAddr)) return false;
+
+	Connections.LocalConnection = MakeShareable(new FNetConnectionUDP());
+	Connections.LocalConnection->SetNetManager(this);
+	Connections.LocalConnection->SetIsMainListen(true);
 
 	if (Connections.LocalConnection)
 	{
 		auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem();
 		if (!SocketSubsystem) return false;
 
-		Socket = SocketSubsystem->CreateSocket(NAME_DGram, TEXT("UDP_TEST"));
+		if (Socket)
+		{
+			SocketSubsystem->DestroySocket(Socket);
+			Socket = nullptr;
+		}
+
+		Socket = SocketSubsystem->CreateSocket(NAME_DGram, TEXT("UDP_Socket"));
 		if (!Socket) return false;
 
 		int32 RecvSize = 0, SendSize = 0;
@@ -42,7 +57,7 @@ bool FNetChannelDriverUDP::Init(int32 InPort)
 			case ENetLinkState::Listen:  // 服务器
 			{
 				Connections.LocalConnection->GetAddr()->SetAnyAddress();
-				Connections.LocalConnection->GetAddr()->SetPort(InPort == INDEX_NONE ? FNetChannelGlobalInfo::Get()->GetInfo().Port : InPort);
+				Connections.LocalConnection->GetAddr()->SetPort(InAddr.Port);
 
 				// 若端口绑定失败，则根据端口增量重新设置端口，直至设置成功
 				int32 BindPort = SocketSubsystem->BindNextPort(Socket, *Connections.LocalConnection->GetAddr(), 1, 1);
@@ -55,9 +70,8 @@ bool FNetChannelDriverUDP::Init(int32 InPort)
 			}
 			case ENetLinkState::Connect:  // 客户端
 			{
-				bool bBindAddr = false;
-				Connections.LocalConnection->GetAddr()->SetIp(*FNetChannelGlobalInfo::Get()->GetInfo().URL, bBindAddr);
-				Connections.LocalConnection->GetAddr()->SetPort(InPort == INDEX_NONE ? FNetChannelGlobalInfo::Get()->GetInfo().Port : InPort);
+				Connections.LocalConnection->GetAddr()->SetIp(InAddr.IP);
+				Connections.LocalConnection->GetAddr()->SetPort(InAddr.Port);
 				break;
 			}
 		}

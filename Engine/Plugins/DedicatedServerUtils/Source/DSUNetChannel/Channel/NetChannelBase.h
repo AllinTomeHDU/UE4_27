@@ -20,6 +20,7 @@ public:
 	virtual void Init();
 	virtual void Tick(float DeltaTime);
 	virtual void Close();
+	void CloseConnect();
 
 	virtual void RecvProtocol(uint32 InProtocol);
 

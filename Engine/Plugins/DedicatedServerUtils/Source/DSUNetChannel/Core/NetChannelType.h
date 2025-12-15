@@ -8,6 +8,7 @@
 #define CONNECT_NUM 2000
 #define BUFFER_SIZE 1024
 
+
 UENUM(BlueprintType)
 enum class ENetLinkState : uint8
 {
@@ -87,11 +88,11 @@ struct DSUNETCHANNEL_API FNetAddr
 		: IP(InIP), Port(InPort)
 	{}
 
-	FNetAddr(const FString& InIPstr, const uint32& InPort)
-		: Port(InPort)
+	FNetAddr(const FString& InIpStr, const uint32& InPort)
+		: IP(0), Port(InPort)
 	{
 		TArray<FString> Parts;
-		InIPstr.ParseIntoArray(Parts, TEXT("."), true);
+		InIpStr.ParseIntoArray(Parts, TEXT("."), true);
 		if (Parts.Num() == 4)
 		{
 			uint8 A = FCString::Atoi(*Parts[0]);

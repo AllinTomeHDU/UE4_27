@@ -18,6 +18,8 @@ void UNetChannelObject::Tick(float DeltaTime)
 
 void UNetChannelObject::Close()
 {
+	RecvDelegate.Clear();
+	JoinDelegate.Clear();
 }
 
 void UNetChannelObject::RecvProtocol(uint32 InProtocol)

@@ -54,7 +54,6 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	FNetChannelManager::Destroy(DatabaseClient);
 	DSUThreadPool::FThreadManagement::Destroy();
 
-
 	FEngineLoop::AppExit();
 	return 0;
 }

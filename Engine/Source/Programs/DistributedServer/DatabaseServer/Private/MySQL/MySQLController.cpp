@@ -6,6 +6,7 @@
 #include "MySQL/Object/MySQL_Object.h"
 #include "MySQL/Link/MySQL_Link.h"
 #include "Misc/DateTime.h"
+#include "SocketSubsystem.h"
 
 
 bool UMySQLController::Post(const FString& InSQL)
@@ -69,12 +70,12 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 
 	switch (InProtocol)
 	{
-		case P_Login:
+		case P_LoginGate:
 		{
 			FNetChannelAddrInfo GameAddrInfo;
 			FString UserID;
 			FString UserName;
-			NETCHANNEL_PROTOCOLS_RECV(P_Login, GameAddrInfo, UserID, UserName);
+			NETCHANNEL_PROTOCOLS_RECV(P_LoginGate, GameAddrInfo, UserID, UserName);
 			DealWithLoginRequest(GameAddrInfo, UserID, UserName);
 			break;
 		}
@@ -133,7 +134,7 @@ void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrI
 	}
 
 	FString ErrorMsg = TEXT("DealWithLoginRequest Failed...");
-	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginGateFailure, GameAddrInfo, ErrorMsg);
 }
 
 void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInfo)
@@ -152,15 +153,15 @@ void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInf
 		{
 			ServerInfo.ID = FCString::Atoi(*Results[0].DataValues[0]);
 			FCStringAnsi::Strncpy(ServerInfo.Name, TCHAR_TO_UTF8(*Results[1].DataValues[0]), 20);
-			FString IPstr = Results[2].DataValues[0];
+			FString IpStr = Results[2].DataValues[0];
 			uint32 Port = FCString::Atoi(*Results[3].DataValues[0]);
-			ServerInfo.Addr = FNetAddr(IPstr, Port);
+			ServerInfo.Addr = FNetAddr(IpStr, Port);
 
-			NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, GameAddrInfo, ServerInfo);
+			NETCHANNEL_PROTOCOLS_SEND(P_LoginGateSuccess, GameAddrInfo, ServerInfo);
 			return;
 		}
 	}
 
 	FString ErrorMsg = TEXT("GetHallServerInfo Failed...");
-	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginGateFailure, GameAddrInfo, ErrorMsg);
 }

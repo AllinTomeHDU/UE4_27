@@ -40,6 +40,14 @@ void FNetChannelBase::Close()
 	}
 }
 
+void FNetChannelBase::CloseConnect()
+{
+	if (Connection.IsValid())
+	{
+		Connection.Pin()->Close();
+	}
+}
+
 void FNetChannelBase::RecvProtocol(uint32 InProtocol)
 {
 	if (NetworkObject.IsValid())

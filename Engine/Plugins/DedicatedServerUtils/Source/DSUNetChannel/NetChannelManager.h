@@ -24,13 +24,13 @@ public:
 	static FNetChannelManager* CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType);
 	static void Destroy(FNetChannelManager* InInstance);
 
-	UNetChannelController* GetController();
-
 	FNetChannelBase* GetLocalChannel();
 	FNetChannelBase* GetRemoteChannel(const FNetChannelAddrInfo& AddrInfo);
 	UNetChannelObject* GetNetChannelObject(const FNetChannelAddrInfo& AddrInfo);
+	UNetChannelController* GetController();
 
 	virtual bool Init(int32 InPort = INDEX_NONE);
+	virtual bool Bind(const FNetAddr& InAddr);
 	virtual void Tick(float DeltaTime);
 	virtual void Close();
 

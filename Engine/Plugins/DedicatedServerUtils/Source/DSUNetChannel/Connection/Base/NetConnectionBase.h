@@ -4,6 +4,7 @@
 #include "../../Core/NetChannelType.h"
 #include "../../Channel/NetChannelBase.h"
 
+class FNetChannelManager;
 class ISocketSubsystem;
 class FSocket;
 class FInternetAddr;
@@ -38,6 +39,7 @@ public:
 	void CheckTimeOut();
 
 protected:
+	FNetChannelManager* NetManager;
 	FSocket* Socket;
 	TSharedPtr<FInternetAddr> LocalAddr;
 	TArray<FNetChannelBase> Channels;
@@ -54,6 +56,9 @@ protected:
 	uint8 bLock : 1;
 
 public:
+	FORCEINLINE void SetNetManager(FNetChannelManager* InNetManager) { NetManager = InNetManager; }
+	FORCEINLINE FNetChannelManager* GetNetManager() const { return NetManager; }
+
 	FORCEINLINE void SetSocket(FSocket* InSocket) { Socket = InSocket; }
 	FORCEINLINE TSharedRef<FInternetAddr> GetAddr() const { return LocalAddr.ToSharedRef(); }
 

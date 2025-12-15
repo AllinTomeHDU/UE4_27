@@ -33,12 +33,6 @@ void FNetChannelManager::Destroy(FNetChannelManager* InInstance)
 	}
 }
 
-UNetChannelController* FNetChannelManager::GetController()
-{
-	auto Channel = Connections.LocalConnection->GetMainChannel();
-	return Channel ? Channel->GetNetObject<UNetChannelController>() : nullptr;
-}
-
 FNetChannelBase* FNetChannelManager::GetLocalChannel()
 {
 	return Connections.LocalConnection->GetMainChannel();
@@ -59,6 +53,12 @@ FNetChannelBase* FNetChannelManager::GetRemoteChannel(const FNetChannelAddrInfo&
 	return nullptr;
 }
 
+UNetChannelController* FNetChannelManager::GetController()
+{
+	auto Channel = Connections.LocalConnection->GetMainChannel();
+	return Channel ? Channel->GetNetObject<UNetChannelController>() : nullptr;
+}
+
 UNetChannelObject* FNetChannelManager::GetNetChannelObject(const FNetChannelAddrInfo& AddrInfo)
 {
 	if (auto NetChannel = GetRemoteChannel(AddrInfo))
@@ -69,6 +69,11 @@ UNetChannelObject* FNetChannelManager::GetNetChannelObject(const FNetChannelAddr
 }
 
 bool FNetChannelManager::Init(int32 InPort)
+{
+	return true;
+}
+
+bool FNetChannelManager::Bind(const FNetAddr& InAddr)
 {
 	return true;
 }
