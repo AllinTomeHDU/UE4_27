@@ -2,9 +2,9 @@
 #include "../../Channel/NetChannelBase.h"
 
 
-bool UNetChannelObject::GetAddrInfo(FNetAddrInfo& AddrInfo)
+bool UNetChannelObject::GetChannelAddrInfo(FNetChannelAddrInfo& AddrInfo)
 {
-	return Channel ? Channel->GetAddrInfo(AddrInfo) : false;
+	return Channel ? Channel->GetChannelAddrInfo(AddrInfo) : false;
 }
 
 void UNetChannelObject::Init()

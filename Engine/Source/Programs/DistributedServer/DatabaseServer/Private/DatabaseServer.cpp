@@ -14,7 +14,6 @@
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
-
 IMPLEMENT_APPLICATION(DatabaseServer, "DatabaseServer");
 
 static int32 Num = 0;

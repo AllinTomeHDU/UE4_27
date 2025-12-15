@@ -2,7 +2,6 @@
 #include "../DSUNetChannel.h"
 #include "../Connection/Base/NetConnectionBase.h"
 #include "../UObject/NetChannelController.h"
-#include "../UObject/NetChannelPlayer.h"
 #include "IPAddress.h"
 
 
@@ -10,7 +9,6 @@
 #pragma optimize("",off)
 #endif
 FSimpleReturnDelegate FNetChannelBase::SimpleControllerDelegate;
-FSimpleReturnDelegate FNetChannelBase::SimplePlayerDelegate;
 
 FNetChannelBase::FNetChannelBase()
 {
@@ -83,11 +81,6 @@ void FNetChannelBase::SpawnController()
 	RegisterObject(SimpleControllerDelegate, UNetChannelController::StaticClass());
 }
 
-void FNetChannelBase::SpawnPlayer()
-{
-	RegisterObject(SimplePlayerDelegate, UNetChannelPlayer::StaticClass());
-}
-
 void FNetChannelBase::RegisterObject(FSimpleReturnDelegate InDelegate, UClass* InObjectClass)
 {
 	if (NetworkObject.IsValid())
@@ -129,18 +122,15 @@ void FNetChannelBase::InitController()
 	}
 }
 
-void FNetChannelBase::InitPlayer()
-{
-}
-
-bool FNetChannelBase::GetAddrInfo(FNetAddrInfo& AddrInfo)
+bool FNetChannelBase::GetChannelAddrInfo(FNetChannelAddrInfo& AddrInfo)
 {
 	if (Connection.IsValid())
 	{
-		Connection.Pin()->GetAddr()->GetIp(AddrInfo.IP);
-		AddrInfo.Port = Connection.Pin()->GetAddr()->GetPort();
+		Connection.Pin()->GetAddr()->GetIp(AddrInfo.Addr.IP);
+		AddrInfo.Addr.Port = Connection.Pin()->GetAddr()->GetPort();
 		AddrInfo.GUID = GUID;
 		return true;
 	}
 	return false;
 }
+

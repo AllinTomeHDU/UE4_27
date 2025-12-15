@@ -1,11 +1,13 @@
 #include "LoginController.h"
 #include "GateServer.h"
 #include "DSUNetChannel/Core/NetChannelProtocols.h"
+#include "DSUNetChannel/Connection/Base/NetConnectionBase.h"
 
 
 void ULoginController::Init()
 {
 	Super::Init();
+
 }
 
 void ULoginController::Tick(float DeltaTime)
@@ -32,16 +34,16 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 				FString UserName;
 				NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
 
-				FNetAddrInfo AddrInfo;
-				if (GetAddrInfo(AddrInfo))
+				FNetChannelAddrInfo AddrInfo;
+				if (GetChannelAddrInfo(AddrInfo))
 				{
 					CLIENT_SEND(DatabaseClient, P_Login, AddrInfo, UserID, UserName);
 				}
 				else
 				{
-					UE_LOG(LogTemp, Display, TEXT("GetAddrInfo Failed"));
+					FString ErrorMsg = TEXT("GetChannelAddrInfo Error...");
+					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, ErrorMsg);
 				}
-
 				break;
 			}
 		}
@@ -52,14 +54,19 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 		{
 			case P_LoginSuccess:
 			{
-				FNetAddrInfo AddrInfo;
-				NETCHANNEL_PROTOCOLS_RECV(P_LoginSuccess, AddrInfo);
-				SERVER_SEND(LoginServer, AddrInfo, P_LoginSuccess);
+				FNetChannelAddrInfo GameAddrInfo;
+				FNetServerInfo HallServerInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_LoginSuccess, GameAddrInfo, HallServerInfo);
+
+				// 若存在多个服务器分区，可在此处向客户端发送多服务器信息（地址、名称、状态）
+				// 方案一让用户自己选择服务器分区，方案二根据服务器状态自动给用户分区（负载均衡）
+
+				SERVER_SEND(LoginServer, GameAddrInfo, P_LoginSuccess, HallServerInfo);
 				break;
 			}
 			case P_LoginFailure:
 			{
-				FNetAddrInfo AddrInfo;
+				FNetChannelAddrInfo AddrInfo;
 				FString ErrorMsg;
 				NETCHANNEL_PROTOCOLS_RECV(P_LoginFailure, AddrInfo, ErrorMsg);
 				SERVER_SEND(LoginServer, AddrInfo, P_LoginFailure);
@@ -67,42 +74,4 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 			}
 		}
 	}
-
-	//switch (InProtocol)
-	//{
-	//	case P_Login:
-	//	{
-	//		FString UserID;
-	//		FString UserName;
-	//		NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
-	//		if (DatabaseClient && DatabaseClient->GetController())
-	//		{
-	//			if (auto ClientChannel = DatabaseClient->GetController()->GetChannel())
-	//			{
-	//				TArray<uint8> Buffer;
-	//				FNetChannelIOStream Stream(Buffer);
-	//				FNetBunchHead Head;
-	//				Head.ProtocolsNumber = (uint32)P_Login; 
-	//				Head.ChannelGUID = ClientChannel->GetGUID();
-	//				Stream << Head;
-	//				Stream << UserID;
-	//				Stream << UserName;
-	//				ClientChannel->Send(Buffer);
-	//			}
-	//		}
-	//		//NETMANAGER_SEND(DatabaseClient, P_Login, UserID, UserName);
-	//		break;
-	//	}
-	//	case P_LoginSuccess:
-	//	{
-	//		NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
-	//		break;
-	//	}
-	//	case P_LoginFailure:
-	//	{
-	//		FString ErrorMsg;
-	//		//NETMANAGER_RECV(DatabaseClient, P_LoginFailure, ErrorMsg);
-	//		break;
-	//	}
-	//}
 }

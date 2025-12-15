@@ -5,7 +5,6 @@
 #include "MySQL/Link/MySQL_LinkType.h"
 #include "MySQLController.generated.h"
 
-class UMySQL_Object;
 struct FMySQL_Link;
 
 
@@ -24,12 +23,10 @@ protected:
 	virtual void Close() override;
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
-	void DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& UserID, FString& UserName);
+	void DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& UserID, const FString& UserName);
+	void SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInfo);
 
 private:
-	//UMySQL_Object* ObjectRead;
-	//UMySQL_Object* ObjectWrite;
-
 	TSharedPtr<FMySQL_Link> ReadLink;
 	TSharedPtr<FMySQL_Link> WriteLink;
 };

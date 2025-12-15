@@ -2,6 +2,7 @@
 #include "DatabaseGlobalInfo.h"
 #include "DatabaseManager.h"
 #include "DSUNetChannel/Core/NetChannelProtocols.h"
+#include "DSUNetChannel/Connection/Base/NetConnectionBase.h"
 #include "MySQL/Object/MySQL_Object.h"
 #include "MySQL/Link/MySQL_Link.h"
 #include "Misc/DateTime.h"
@@ -9,14 +10,6 @@
 
 bool UMySQLController::Post(const FString& InSQL)
 {
-	//if (InSQL.IsEmpty()) return false;
-	//if (!ObjectWrite)
-	//{
-	//	ObjectWrite = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
-	//	if (!ObjectWrite) return false;
-	//}
-	//return ObjectWrite->GetLink()->QueryLink(InSQL);
-
 	if (InSQL.IsEmpty()) return false;
 	if (!WriteLink)
 	{
@@ -28,18 +21,6 @@ bool UMySQLController::Post(const FString& InSQL)
 
 bool UMySQLController::Get(const FString& InSQL, TArray<FMySQL_FieldsData>& Results)
 {
-	//if (InSQL.IsEmpty()) return false;
-	//if (!ObjectRead)
-	//{
-	//	ObjectRead = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
-	//	if (!ObjectRead) return false;
-	//}
-	//if (ObjectRead->GetLink()->QueryLink(InSQL))
-	//{
-	//	return ObjectRead->GetLink()->GetSelectResults(Results);
-	//}
-	//return false;
-
 	if (InSQL.IsEmpty()) return false;
 	if (!ReadLink)
 	{
@@ -57,11 +38,18 @@ void UMySQLController::Init()
 {
 	Super::Init();
 
-	//ObjectRead = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
-	//ObjectWrite = UDatabaseManager::CreateMySQL_Object(nullptr, FMySQLGlobalInfo::Get()->GetInfo());
-
 	ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
 	WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+
+	if (Channel->GetConnection()->GetLinkState() == ENetLinkState::Listen &&
+		Channel->GetConnection()->GetIsMainListen())
+	{
+		FString SQL = TEXT("UPDATE server_info SET state='ONLINE' WHERE server_name='DatabaseServer';");
+		if (!Post(SQL))
+		{
+			UE_LOG(LogTemp, Display, TEXT("Init DatabaseServer Failed"));
+		}
+	}
 }
 
 void UMySQLController::Tick(float DeltaTime)
@@ -73,18 +61,6 @@ void UMySQLController::Tick(float DeltaTime)
 void UMySQLController::Close()
 {
 	Super::Close();
-
-	//if (ObjectRead)
-	//{
-	//	ObjectRead->MarkPendingKill();
-	//	ObjectRead = nullptr;
-	//}
-	//if (ObjectWrite)
-	//{
-	//	ObjectWrite->MarkPendingKill();
-	//	ObjectWrite = nullptr;
-	//}
-
 }
 
 void UMySQLController::RecvProtocol(uint32 InProtocol)
@@ -95,17 +71,17 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 	{
 		case P_Login:
 		{
-			FNetAddrInfo AddrInfo;
+			FNetChannelAddrInfo GameAddrInfo;
 			FString UserID;
 			FString UserName;
-			NETCHANNEL_PROTOCOLS_RECV(P_Login, AddrInfo, UserID, UserName);
-			DealWithLoginRequest(AddrInfo, UserID, UserName);
+			NETCHANNEL_PROTOCOLS_RECV(P_Login, GameAddrInfo, UserID, UserName);
+			DealWithLoginRequest(GameAddrInfo, UserID, UserName);
 			break;
 		}
 	}
 }
 
-void UMySQLController::DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& UserID, FString& UserName)
+void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& UserID, const FString& UserName)
 {
 	FString TableName = TEXT("player_info");
 	FString SQL = FString::Printf(TEXT("SELECT user_name FROM %s WHERE user_id='%s';"), *TableName, *UserID);
@@ -122,12 +98,8 @@ void UMySQLController::DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& Use
 					*TableName, *NowDate, *UserID);
 				if (Post(SQL))
 				{
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, AddrInfo);
-				}
-				else
-				{
-					FString ErrorMsg = TEXT("Update Login Date Failed...");
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
+					SendHallServerInfo(GameAddrInfo);
+					return;
 				}
 			}
 			else
@@ -137,12 +109,8 @@ void UMySQLController::DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& Use
 					*TableName, *UserName, *NowDate, *UserID);
 				if (Post(SQL))
 				{
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, AddrInfo);
-				}
-				else
-				{
-					FString ErrorMsg = TEXT("Update UserName Failed...");
-					NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
+					SendHallServerInfo(GameAddrInfo);
+					return;
 				}
 			}
 		}
@@ -157,18 +125,42 @@ void UMySQLController::DealWithLoginRequest(FNetAddrInfo& AddrInfo, FString& Use
 			);
 			if (Post(SQL))
 			{
-				NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, AddrInfo);
+				SendHallServerInfo(GameAddrInfo);
+				return;
 			}
-			else
-			{
-				FString ErrorMsg = TEXT("Register Failed...");
-				NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
-			}
+
 		}
 	}
-	else
+
+	FString ErrorMsg = TEXT("DealWithLoginRequest Failed...");
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
+}
+
+void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInfo)
+{
+	FNetServerInfo ServerInfo;
+	FString SQL = TEXT("SELECT i.server_id, i.server_name, i.ip, i.port ")
+				  TEXT("FROM server_info AS i ")
+				  TEXT("JOIN server_state AS s ")
+				  TEXT("ON i.server_id = s.server_id ")
+				  TEXT("WHERE i.state = 'ONLINE' AND i.server_name LIKE 'HallServer%' ")
+				  TEXT("ORDER BY s.player_num ASC LIMIT 1;");
+	TArray<FMySQL_FieldsData> Results;
+	if (Get(SQL, Results))
 	{
-		FString ErrorMsg = TEXT("Datebase Get Failed...");
-		NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, AddrInfo, ErrorMsg);
+		if (Results.Num() == 4 && Results[0].DataValues.Num() > 0)
+		{
+			ServerInfo.ID = FCString::Atoi(*Results[0].DataValues[0]);
+			FCStringAnsi::Strncpy(ServerInfo.Name, TCHAR_TO_UTF8(*Results[1].DataValues[0]), 20);
+			FString IPstr = Results[2].DataValues[0];
+			uint32 Port = FCString::Atoi(*Results[3].DataValues[0]);
+			ServerInfo.Addr = FNetAddr(IPstr, Port);
+
+			NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, GameAddrInfo, ServerInfo);
+			return;
+		}
 	}
+
+	FString ErrorMsg = TEXT("GetHallServerInfo Failed...");
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
 }

@@ -44,13 +44,13 @@ FNetChannelBase* FNetChannelManager::GetLocalChannel()
 	return Connections.LocalConnection->GetMainChannel();
 }
 
-FNetChannelBase* FNetChannelManager::GetRemoteChannel(const FNetAddrInfo& AddrInfo)
+FNetChannelBase* FNetChannelManager::GetRemoteChannel(const FNetChannelAddrInfo& AddrInfo)
 {
 	if (auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem())
 	{
 		TSharedRef<FInternetAddr> TempAddr = SocketSubsystem->CreateInternetAddr();
-		TempAddr->SetIp(AddrInfo.IP);
-		TempAddr->SetPort(AddrInfo.Port);
+		TempAddr->SetIp(AddrInfo.Addr.IP);
+		TempAddr->SetPort(AddrInfo.Addr.Port);
 		if (auto InConnection = Connections[TempAddr])
 		{
 			return InConnection->GetNetChannel(AddrInfo.GUID);
@@ -59,7 +59,7 @@ FNetChannelBase* FNetChannelManager::GetRemoteChannel(const FNetAddrInfo& AddrIn
 	return nullptr;
 }
 
-UNetChannelObject* FNetChannelManager::GetNetChannelObject(const FNetAddrInfo& AddrInfo)
+UNetChannelObject* FNetChannelManager::GetNetChannelObject(const FNetChannelAddrInfo& AddrInfo)
 {
 	if (auto NetChannel = GetRemoteChannel(AddrInfo))
 	{
@@ -136,7 +136,7 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			case P_Join:
 			{
 				InConnection->SetState(ENetConnectionState::Join);
-				//InConnection->GetMainChannel()->InitController();
+				InConnection->GetMainChannel()->InitController();
 				break;
 			}
 		}
@@ -199,15 +199,6 @@ TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::operator[](T
 	return nullptr;
 }
 
-void FNetChannelManager::FNetConnections::Close(int32 Index)
-{
-	if (Index >= 0 && Index < RemoteConnections.Num())
-	{
-		RemoteConnections[Index]->SetState(ENetConnectionState::UnInit);
-		AliveRemoveConnectionsIndex.Remove(Index);
-	}
-}
-
 TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::GetEmptyConnection(TSharedPtr<FInternetAddr> InternetAddr)
 {
 	for (int i = 0; i < RemoteConnections.Num(); ++i)
@@ -220,8 +211,8 @@ TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::GetEmptyConn
 				RemoteConnections[i]->GetAddr()->SetIp(*InternetAddr->ToString(false), bBindAddr);
 				RemoteConnections[i]->GetAddr()->SetPort(InternetAddr->GetPort());
 
-				RemoteConnections[i]->Lock();
 				//RemoteConnections[i]->Init();
+				RemoteConnections[i]->Lock();
 				AliveRemoveConnectionsIndex.AddUnique(i);
 				return RemoteConnections[i];
 			}
@@ -230,3 +221,11 @@ TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::GetEmptyConn
 	return nullptr;
 }
 
+void FNetChannelManager::FNetConnections::Close(int32 Index)
+{
+	if (Index >= 0 && Index < RemoteConnections.Num())
+	{
+		RemoteConnections[Index]->Close();
+		AliveRemoveConnectionsIndex.Remove(Index);
+	}
+}

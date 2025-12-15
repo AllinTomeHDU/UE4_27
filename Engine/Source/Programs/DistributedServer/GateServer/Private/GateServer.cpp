@@ -3,12 +3,13 @@
 
 #include "GateServer.h"
 #include "RequiredProgramMainCPPInclude.h"
-#include "Log/GateServerLog.h"
 #include "Login/LoginController.h"
 #include "DSUNetChannel/NetChannelGlobalInfo.h"
 #include "DSUThreadPool/ServerThreadManager.h"
 #include "DSUNetChannel/Channel/NetChannelBase.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogGateServer, Log, All);
+IMPLEMENT_APPLICATION(GateServer, "GateServer");
 
 INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 {
@@ -25,13 +26,13 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	if (!LoginServer || !LoginServer->Init())
 	{
 		delete LoginServer;
-		UE_LOG(LogGateServer, Error, TEXT("Server Create Failed"));
+		UE_LOG(LogTemp, Error, TEXT("Server Create Failed"));
 		return -1;
 	}
-	if (!DatabaseClient || !DatabaseClient->Init(12234))
+	if (!DatabaseClient || !DatabaseClient->Init(13306))
 	{
 		delete DatabaseClient;
-		UE_LOG(LogGateServer, Error, TEXT("Client Create Failed"));
+		UE_LOG(LogTemp, Error, TEXT("Client Create Failed"));
 		return -1;
 	}
 

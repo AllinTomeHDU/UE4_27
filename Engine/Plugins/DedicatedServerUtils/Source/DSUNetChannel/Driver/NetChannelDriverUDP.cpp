@@ -74,6 +74,7 @@ bool FNetChannelDriverUDP::Init(int32 InPort)
 		Connections.LocalConnection->SetSocket(Socket);
 		Connections.LocalConnection->SetLinkState(LinkState);
 		Connections.LocalConnection->Init();
+		Connections.LocalConnection->GetMainChannel()->InitController();
 
 		if (LinkState == ENetLinkState::Listen)
 		{
@@ -153,7 +154,7 @@ void FNetChannelDriverUDP::Listen()
 
 		if (LinkState == ENetLinkState::Listen)
 		{
-			UE_LOG(LogTemp, Display, TEXT("Server Recv A Protocol from [%s][%d]: %d"), 
+			UE_LOG(LogDSUNetChannel, Display, TEXT("Server Recv A Protocol from [%s][%d]: %d"),
 				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber);
 
 			if (auto Connect = Connections[RemoteAddr])
@@ -177,7 +178,7 @@ void FNetChannelDriverUDP::Listen()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Display, TEXT("Client Recv A Protocol from [%s][%d]: %d"),
+			UE_LOG(LogDSUNetChannel, Display, TEXT("Client Recv A Protocol from [%s][%d]: %d"),
 				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber);
 
 			if (Connections.LocalConnection->GetState() == ENetConnectionState::Join)

@@ -15,7 +15,8 @@ void FNetConnectionUDP::Send(const TArray<uint8>& InData)
 	int32 BytesSend = 0;
 	if (!Socket->SendTo(InData.GetData(), InData.Num(), BytesSend, *GetAddr()))
 	{
-		UE_LOG(LogDSUNetChannel, Error, TEXT("Send Failed ...... target: [%s][%d]"), *LocalAddr->ToString(false), LocalAddr->GetPort());
+		UE_LOG(LogDSUNetChannel, Error, TEXT("Send to [%s][%d] Failed ... "), 
+			*LocalAddr->ToString(false), LocalAddr->GetPort());
 	}
 }
 

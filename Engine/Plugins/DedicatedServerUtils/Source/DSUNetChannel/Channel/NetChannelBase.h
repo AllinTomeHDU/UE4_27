@@ -13,7 +13,6 @@ class DSUNETCHANNEL_API FNetChannelBase
 {
 public:
 	static FSimpleReturnDelegate SimpleControllerDelegate;
-	static FSimpleReturnDelegate SimplePlayerDelegate;
 
 	FNetChannelBase();
 	virtual ~FNetChannelBase() {};
@@ -30,10 +29,7 @@ public:
 	bool Recv(TArray<uint8>& InData);
 
 	void SpawnController();
-	void SpawnPlayer();
-
 	void InitController();
-	void InitPlayer();
 
 	template<class T>
 	T* GetNetObject()
@@ -41,7 +37,7 @@ public:
 		return Cast<T>(NetworkObject.Get());
 	}
 
-	bool GetAddrInfo(FNetAddrInfo& AddrInfo);
+	bool GetChannelAddrInfo(FNetChannelAddrInfo& AddrInfo);
 
 protected:
 	FGuid GUID;

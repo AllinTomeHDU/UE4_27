@@ -3,9 +3,9 @@
 #include "CoreMinimal.h"
 #include "Core/NetChannelType.h"
 
-//#ifdef PLATFORM_PROJECT
-//#include "Tickable.h"
-//#endif
+#ifdef PLATFORM_PROJECT
+#include "Tickable.h"
+#endif
 
 class FNetConnectionBase;
 class FInternetAddr;
@@ -15,9 +15,9 @@ class FNetChannelBase;
 
 
 class DSUNETCHANNEL_API FNetChannelManager
-//#ifdef PLATFORM_PROJECT
-//	: public FTickableGameObject
-//#endif
+#ifdef PLATFORM_PROJECT
+	: public FTickableGameObject
+#endif
 {
 public:
 	virtual ~FNetChannelManager() {};
@@ -27,8 +27,8 @@ public:
 	UNetChannelController* GetController();
 
 	FNetChannelBase* GetLocalChannel();
-	FNetChannelBase* GetRemoteChannel(const FNetAddrInfo& AddrInfo);
-	UNetChannelObject* GetNetChannelObject(const FNetAddrInfo& AddrInfo);
+	FNetChannelBase* GetRemoteChannel(const FNetChannelAddrInfo& AddrInfo);
+	UNetChannelObject* GetNetChannelObject(const FNetChannelAddrInfo& AddrInfo);
 
 	virtual bool Init(int32 InPort = INDEX_NONE);
 	virtual void Tick(float DeltaTime);
@@ -42,8 +42,8 @@ protected:
 	struct FNetConnections
 	{
 		TSharedPtr<FNetConnectionBase> operator[](TSharedPtr<FInternetAddr> InternetAddr);
-		void Close(int32 Index);
 		TSharedPtr<FNetConnectionBase> GetEmptyConnection(TSharedPtr<FInternetAddr> InternetAddr);
+		void Close(int32 Index);
 
 		TSharedPtr<FNetConnectionBase> LocalConnection;
 		TArray<TSharedPtr<FNetConnectionBase>> RemoteConnections;
@@ -52,6 +52,7 @@ protected:
 
 	ENetLinkState LinkState;
 	bool bAsynchronous;
+
 public:
 	FORCEINLINE ENetLinkState GetLinkState() const { return LinkState; }
 	FORCEINLINE TSharedPtr<FNetConnectionBase> GetLocalConnection() const { return Connections.LocalConnection; }

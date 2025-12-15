@@ -1,4 +1,5 @@
 #include "NetConnectionBase.h"
+#include "../../DSUNetChannel.h"
 #include "../../NetChannelGlobalInfo.h"
 #include "../../Core/NetChannelType.h"
 #include "../../Core/NetChannelProtocols.h"
@@ -57,11 +58,6 @@ void FNetConnectionBase::Init()
 	{
 		MainChannel->Init();
 		MainChannel->SpawnController();
-		if (bMainListen)
-		{
-			MainChannel->InitController();
-			MainChannel->InitPlayer();
-		}
 	}
 }
 
@@ -138,7 +134,6 @@ void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
 				TArray<uint8> InNewData(InData, BytesNum);
 				Channel->AddMsg(InNewData);
 			}
-			UE_LOG(LogTemp, Display, TEXT("Analysis UpdateObject"));
 			Channel->RecvProtocol(Head.ProtocolsNumber);
 		}
 	};
@@ -220,7 +215,8 @@ void FNetConnectionBase::CheckTimeOut()
 	if (CurrentTime - LastHeartBeatTime > FNetChannelGlobalInfo::Get()->GetInfo().HeatBeatTimeOutTime)
 	{
 		Close();
-		UE_LOG(LogTemp, Display, TEXT("Connection timeout..."));
+		UE_LOG(LogDSUNetChannel, Display, TEXT("[%s][%d] Connection timeout..."),
+			*LocalAddr->ToString(false), LocalAddr->GetPort());
 	}
 }
 

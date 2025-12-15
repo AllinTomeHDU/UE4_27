@@ -21,7 +21,7 @@ public:
 	FNetChannelJoinReturnDelegate JoinDelegate;
 	FNetChannelRecvReturnDelegate RecvDelegate;
 
-	bool GetAddrInfo(FNetAddrInfo& AddrInfo);
+	bool GetChannelAddrInfo(FNetChannelAddrInfo& AddrInfo);
 
 protected:
 	virtual void Init();
