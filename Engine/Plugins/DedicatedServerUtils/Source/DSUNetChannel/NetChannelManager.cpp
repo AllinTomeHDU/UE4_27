@@ -115,10 +115,10 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 				{
 					if (FNetChannelGlobalInfo::Get()->GetInfo().Version == RemoteVersion)
 					{
-						NETCHANNEL_PROTOCOLS_SEND(P_Welcom);
 						InConnection->GetMainChannel()->SetGUID(MainGUID);
 						InConnection->SetState(ENetConnectionState::Verify);
 						InConnection->ResetHeartBeat();
+						NETCHANNEL_PROTOCOLS_SEND(P_Welcom);
 					}
 					else
 					{
@@ -176,11 +176,8 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 		}
 		if (UNetChannelObject* NetObject = Channel->GetNetObject<UNetChannelObject>())
 		{
-			if (NetObject->JoinDelegate.IsBound())
-			{
-				Head.ProtocolsNumber == P_Welcom ? NetObject->JoinDelegate.Broadcast(true)
-												 : NetObject->JoinDelegate.Broadcast(false);
-			}
+			Head.ProtocolsNumber == P_Welcom ? NetObject->JoinDelegate.Broadcast(true)
+											 : NetObject->JoinDelegate.Broadcast(false);
 		}
 	}
 }

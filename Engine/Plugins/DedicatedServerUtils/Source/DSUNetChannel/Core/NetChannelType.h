@@ -43,7 +43,7 @@ struct DSUNETCHANNEL_API FNetConfigInfo
 	FNetConfigInfo()
 		: Version(TEXT("1.0.1"))
 		, URL(TEXT("127.0.0.1"))
-		, Port(10100)
+		, Port(10099)
 		, RecvDataSize(BUFFER_SIZE)
 		, SendDataSize(BUFFER_SIZE)
 		, MaxConnections(CONNECT_NUM)

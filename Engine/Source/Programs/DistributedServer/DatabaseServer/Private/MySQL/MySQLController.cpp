@@ -14,7 +14,7 @@ bool UMySQLController::Post(const FString& InSQL)
 	if (InSQL.IsEmpty()) return false;
 	if (!WriteLink)
 	{
-		WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+		WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetMySQLInfo());
 		if (!WriteLink) return false;
 	}
 	return WriteLink->QueryLink(InSQL);
@@ -25,7 +25,7 @@ bool UMySQLController::Get(const FString& InSQL, TArray<FMySQL_FieldsData>& Resu
 	if (InSQL.IsEmpty()) return false;
 	if (!ReadLink)
 	{
-		ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+		ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetMySQLInfo());
 		if (!ReadLink) return false;
 	}
 	if (ReadLink->QueryLink(InSQL))
@@ -39,8 +39,8 @@ void UMySQLController::Init()
 {
 	Super::Init();
 
-	ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
-	WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetInfo());
+	ReadLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetMySQLInfo());
+	WriteLink = UDatabaseManager::CreateMySQL_Link(FMySQLGlobalInfo::Get()->GetMySQLInfo());
 
 	if (Channel->GetConnection()->GetLinkState() == ENetLinkState::Listen &&
 		Channel->GetConnection()->GetIsMainListen())
@@ -70,12 +70,12 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 
 	switch (InProtocol)
 	{
-		case P_LoginGate:
+		case P_Login:
 		{
 			FNetChannelAddrInfo GameAddrInfo;
 			FString UserID;
 			FString UserName;
-			NETCHANNEL_PROTOCOLS_RECV(P_LoginGate, GameAddrInfo, UserID, UserName);
+			NETCHANNEL_PROTOCOLS_RECV(P_Login, GameAddrInfo, UserID, UserName);
 			DealWithLoginRequest(GameAddrInfo, UserID, UserName);
 			break;
 		}
@@ -134,7 +134,7 @@ void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrI
 	}
 
 	FString ErrorMsg = TEXT("DealWithLoginRequest Failed...");
-	NETCHANNEL_PROTOCOLS_SEND(P_LoginGateFailure, GameAddrInfo, ErrorMsg);
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
 }
 
 void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInfo)
@@ -157,11 +157,11 @@ void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInf
 			uint32 Port = FCString::Atoi(*Results[3].DataValues[0]);
 			ServerInfo.Addr = FNetAddr(IpStr, Port);
 
-			NETCHANNEL_PROTOCOLS_SEND(P_LoginGateSuccess, GameAddrInfo, ServerInfo);
+			NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess, GameAddrInfo, ServerInfo);
 			return;
 		}
 	}
 
 	FString ErrorMsg = TEXT("GetHallServerInfo Failed...");
-	NETCHANNEL_PROTOCOLS_SEND(P_LoginGateFailure, GameAddrInfo, ErrorMsg);
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
 }

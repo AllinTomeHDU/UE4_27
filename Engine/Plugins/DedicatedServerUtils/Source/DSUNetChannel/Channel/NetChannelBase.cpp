@@ -31,13 +31,13 @@ void FNetChannelBase::Tick(float DeltaTime)
 void FNetChannelBase::Close()
 {
 	GUID = FGuid();
-	if (NetworkObject.IsValid())
-	{
-		NetworkObject->Close();
-		NetworkObject->MarkPendingKill();
-		NetworkObject.Reset();
-		NetworkObject = nullptr;
-	}
+	//if (NetworkObject.IsValid())
+	//{
+	//	NetworkObject->Close();
+	//	NetworkObject->MarkPendingKill();
+	//	NetworkObject.Reset();
+	//	NetworkObject = nullptr;
+	//}
 }
 
 void FNetChannelBase::CloseConnect()

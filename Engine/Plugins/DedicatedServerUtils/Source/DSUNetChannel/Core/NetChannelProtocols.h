@@ -81,8 +81,11 @@ public: \
 /**
 * 调用的时候需要访问权限内有一个名为 Channel 的变量
 */
-#define NETCHANNEL_PROTOCOLS_SEND(InProtocols,...) FNetChannelProtocols<InProtocols>::Send(Channel, __VA_ARGS__);
-#define NETCHANNEL_PROTOCOLS_RECV(InProtocols,...) FNetChannelProtocols<InProtocols>::Recv(Channel, __VA_ARGS__);
+#define NETCHANNEL_PROTOCOLS_SEND(InProtocols,...) FNetChannelProtocols<InProtocols>::Send(Channel, ##__VA_ARGS__);
+#define NETCHANNEL_PROTOCOLS_RECV(InProtocols,...) FNetChannelProtocols<InProtocols>::Recv(Channel, ##__VA_ARGS__);
+/*
+* GCC/Clang的可变参数写法：args... 与 ##args
+*/
 
 
 #define CLIENT_SEND(ClientManager,InProtocols,...) \
@@ -90,7 +93,7 @@ if (ClientManager && ClientManager->GetController()) \
 { \
 	if (auto SENDCHANNEL = ClientManager->GetLocalChannel()) \
 	{ \
-		FNetChannelProtocols<InProtocols>::Send(SENDCHANNEL,__VA_ARGS__); \
+		FNetChannelProtocols<InProtocols>::Send(SENDCHANNEL,##__VA_ARGS__); \
 	} \
 }
 #define CLIENT_RECV(ClientManager,InProtocols,...) \
@@ -98,7 +101,7 @@ if (ClientManager && ClientManager->GetController()) \
 { \
 	if (auto RECVCHANNEL = ClientManager->GetLocalChannel()) \
 	{ \
-		FNetChannelProtocols<InProtocols>::Recv(RECVCHANNEL,__VA_ARGS__); \
+		FNetChannelProtocols<InProtocols>::Recv(RECVCHANNEL,##__VA_ARGS__); \
 	} \
 }
 
@@ -107,7 +110,7 @@ if (ServerManager && ServerManager->GetController()) \
 { \
 	if (auto SENDCHANNEL = ServerManager->GetRemoteChannel(AddrInfo)) \
 	{ \
-		FNetChannelProtocols<InProtocols>::Send(SENDCHANNEL,__VA_ARGS__); \
+		FNetChannelProtocols<InProtocols>::Send(SENDCHANNEL,##__VA_ARGS__); \
 	} \
 }
 #define SERVER_RECV(ServerManager,AddrInfo,InProtocols,...) \
@@ -115,7 +118,7 @@ if (ServerManager && ServerManager->GetController()) \
 { \
 	if (auto RECVCHANNEL = ServerManager->GetRemoteChannel(AddrInfo)) \
 	{ \
-		FNetChannelProtocols<InProtocols>::Recv(RECVCHANNEL,__VA_ARGS__); \
+		FNetChannelProtocols<InProtocols>::Recv(RECVCHANNEL,##__VA_ARGS__); \
 	} \
 }
 
@@ -135,18 +138,15 @@ DEFINITION_NETCHANNEL_PROTOCOLS(HeartBeat, 10006)		// client
 /*
 * 报错协议
 */
-DEFINITION_NETCHANNEL_PROTOCOLS(Failure,10010)			// server/client
+DEFINITION_NETCHANNEL_PROTOCOLS(Failure, 10010)			// server/client
 DEFINITION_NETCHANNEL_PROTOCOLS(ServerFailure, 10011)	// Server
 DEFINITION_NETCHANNEL_PROTOCOLS(ClientFailure, 10012)	// Client
 
 /*
 * 登录协议
 */
-DEFINITION_NETCHANNEL_PROTOCOLS(LoginGate,10020)			// Client
-DEFINITION_NETCHANNEL_PROTOCOLS(LoginGateSuccess,10021)		// Server
-DEFINITION_NETCHANNEL_PROTOCOLS(LoginGateFailure, 10022)
-DEFINITION_NETCHANNEL_PROTOCOLS(LoginHall, 10023)			// Client
-DEFINITION_NETCHANNEL_PROTOCOLS(LoginHallSuccess, 10024)		// Server
-DEFINITION_NETCHANNEL_PROTOCOLS(LoginHallFailure, 10025)
+DEFINITION_NETCHANNEL_PROTOCOLS(Login, 10020)			// Client
+DEFINITION_NETCHANNEL_PROTOCOLS(LoginSuccess, 10021)	// Server
+DEFINITION_NETCHANNEL_PROTOCOLS(LoginFailure, 10022)
 
 

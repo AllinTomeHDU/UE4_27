@@ -11,12 +11,12 @@ public:
 	static FMySQLGlobalInfo* Get();
 	static void Destroy();
 
-	void Init(const FString& InPath = FPaths::ProjectDir() / TEXT("MySQLConfig.ini"));
+	void Init(const FString& InPath = FPaths::ProjectDir() / TEXT("Config/DatabaseConfig.ini"));
 
 private:
-	FMySQLConnectConfig ConfigInfo;
+	FMySQLConnectConfig MySQLConfig;
 
 public:
-	FORCEINLINE const FMySQLConnectConfig& GetInfo() const { return ConfigInfo; }
+	FORCEINLINE const FMySQLConnectConfig& GetMySQLInfo() const { return MySQLConfig; }
 };
 
