@@ -30,6 +30,7 @@ void FNetChannelBase::Tick(float DeltaTime)
 
 void FNetChannelBase::Close()
 {
+	// 预分配策略，关闭只改变状态，不回收资源
 	GUID = FGuid();
 	//if (NetworkObject.IsValid())
 	//{
@@ -62,16 +63,13 @@ void FNetChannelBase::AddMsg(TArray<uint8>& InData)
 }
 
 
-void FNetChannelBase::Send(const TArray<uint8>& InData)
+bool FNetChannelBase::Send(TArray<uint8>& InData)
 {
-	if (Connection.IsValid())
-	{
-		Connection.Pin()->Send(InData);
-	}
-	else
-	{
-		UE_LOG(LogDSUNetChannel, Display, TEXT("Channel Connection is not Valid"));
-	}
+	/*
+	* 目前的发包策略是整包发送，缓冲区大小固定，当包大小大于缓冲区时会发送不全
+	* 可以根据业务思考是否改变发送策略，一种方案是模仿TCP做拆包发送
+	*/
+	return Connection.IsValid() ? Connection.Pin()->Send(InData) : false;
 }
 
 bool FNetChannelBase::Recv(TArray<uint8>& InData)

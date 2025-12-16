@@ -1,5 +1,6 @@
 #include "NetConnectionUDP.h"
 #include "../DSUNetChannel.h"
+#include "../Core/NetChannelEncryption.h"
 #include "../Channel/NetChannelBase.h"
 #include "Sockets.h"
 #include "IPAddress.h"
@@ -8,22 +9,22 @@
 #if PLATFORM_WINDOWS
 #pragma optimize("",off)
 #endif
-void FNetConnectionUDP::Send(const TArray<uint8>& InData)
+bool FNetConnectionUDP::Send(const TArray<uint8>& InData)
 {
-	if (!Socket) return;
+	if (!FNetConnectionBase::Send(InData)) return false;
+
+	TArray<uint8> EncryptedPacket;
+	if (!FNetChannelEncryption::EncryptForSend(InData, EncryptedPacket)) return false;
 
 	int32 BytesSend = 0;
-	if (!Socket->SendTo(InData.GetData(), InData.Num(), BytesSend, *GetAddr()))
-	{
-		UE_LOG(LogDSUNetChannel, Error, TEXT("Send to [%s][%d] Failed ... "), 
-			*LocalAddr->ToString(false), LocalAddr->GetPort());
-	}
+	return Socket->SendTo(EncryptedPacket.GetData(), EncryptedPacket.Num(), BytesSend, *GetAddr());
 }
 
-void FNetConnectionUDP::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
+bool FNetConnectionUDP::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
 {
-	FNetConnectionBase::Recv(InChannelGUID, InData);
+	if (!FNetConnectionBase::Recv(InChannelGUID, InData)) return false;
 
+	return true;
 }
 
 void FNetConnectionUDP::Verify()
@@ -31,12 +32,11 @@ void FNetConnectionUDP::Verify()
 	FNetConnectionBase::Verify();
 }
 
-void FNetConnectionUDP::Analysis(uint8* InData, int32 BytesNum)
+void FNetConnectionUDP::Analysis(TArray<uint8>& InData)
 {
-	FNetConnectionBase::Analysis(InData, BytesNum);
-
-
+	FNetConnectionBase::Analysis(InData);
 }
+
 #if PLATFORM_WINDOWS
 #pragma optimize("",on)
 #endif

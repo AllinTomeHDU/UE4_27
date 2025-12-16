@@ -36,8 +36,6 @@ void UHallController::RecvProtocol(uint32 InProtocol)
 
 
 				NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
-				
-
 				break;
 			}
 		}

@@ -19,15 +19,15 @@ public:
 
 	static ISocketSubsystem* GetSocketSubsystem();
 
-	virtual void Send(const TArray<uint8>& InData);
-	virtual void Recv(const FGuid& InChannelGUID, TArray<uint8>& InData);
+	virtual bool Send(const TArray<uint8>& InData);
+	virtual bool Recv(const FGuid& InChannelGUID, TArray<uint8>& InData);
 
 	virtual void Init();
 	virtual void Tick(float DeltaTime);
 	virtual void Close();
 
 	virtual void Verify();
-	virtual void Analysis(uint8* InData, int32 BytesNum);
+	virtual void Analysis(TArray<uint8>& InData);
 
 	FNetChannelBase* GetMainChannel();
 	FNetChannelBase* GetNetChannel(const FGuid& InChannelGUID);

@@ -26,7 +26,7 @@ public:
 
 	void AddMsg(TArray<uint8>& InData);
 
-	void Send(const TArray<uint8>& InData);
+	bool Send(TArray<uint8>& InData);
 	bool Recv(TArray<uint8>& InData);
 
 	void SpawnController();

@@ -32,12 +32,17 @@ ISocketSubsystem* FNetConnectionBase::GetSocketSubsystem()
 	return ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
 }
 
-void FNetConnectionBase::Send(const TArray<uint8>& InData)
+bool FNetConnectionBase::Send(const TArray<uint8>& InData)
 {
+	if (!Socket) return false;
+
+	return true;
 }
 
-void FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
+bool FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
 {
+	if (InChannelGUID == FGuid()) return false;
+
 	for (auto& Tmp : Channels)
 	{
 		if (Tmp.IsValid() && Tmp.GetGUID() == InChannelGUID)
@@ -46,6 +51,7 @@ void FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
 			break;
 		}
 	}
+	return true;
 }
 
 void FNetConnectionBase::Init()
@@ -95,6 +101,7 @@ void FNetConnectionBase::Tick(float DeltaTime)
 
 void FNetConnectionBase::Close()
 {
+	UE_LOG(LogTemp, Display, TEXT("[%s][%d] Close..."), *LocalAddr->ToString(false), LocalAddr->GetPort());
 	for (auto& Tmp : Channels)
 	{
 		Tmp.Close();
@@ -120,19 +127,19 @@ void FNetConnectionBase::Verify()
 	}
 }
 
-void FNetConnectionBase::Analysis(uint8* InData, int32 BytesNum)
+void FNetConnectionBase::Analysis(TArray<uint8>& InData)
 {
-	FNetBunchHead Head = *(FNetBunchHead*)InData;
+	FNetBunchHead Head = *(FNetBunchHead*)InData.GetData();
 
 	// 更新上层业务
 	auto UpdateObject = [&]()
 	{
 		if (auto Channel = GetMainChannel())
 		{
-			if (BytesNum > sizeof(FNetBunchHead))
+			if (InData.Num() > sizeof(FNetBunchHead))
 			{
-				TArray<uint8> InNewData(InData, BytesNum);
-				Channel->AddMsg(InNewData);
+				//TArray<uint8> InNewData(InData, BytesNum);
+				Channel->AddMsg(InData);
 			}
 			Channel->RecvProtocol(Head.ProtocolsNumber);
 		}

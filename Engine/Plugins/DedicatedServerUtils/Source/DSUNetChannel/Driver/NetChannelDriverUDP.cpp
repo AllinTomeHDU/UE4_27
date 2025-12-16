@@ -1,6 +1,7 @@
 #include "NetChannelDriverUDP.h"
 #include "../DSUNetChannel.h"
 #include "../NetChannelGlobalInfo.h"
+#include "../Core/NetChannelEncryption.h"
 #include "../Connection/NetConnectionUDP.h"
 #include "DSUThreadPool/ServerThreadManager.h"
 #include "Sockets.h"
@@ -153,55 +154,59 @@ void FNetChannelDriverUDP::RunThread()
 
 void FNetChannelDriverUDP::Listen()
 {
-	uint8 Data[BUFFER_SIZE] = { 0 };
+	uint8 RecvData[BUFFER_SIZE] = { 0 };
 	int32 BytesRead = 0;
 	auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem();
 	TSharedPtr<FInternetAddr> RemoteAddr = SocketSubsystem->CreateInternetAddr();
-	if (Socket->RecvFrom(Data, BUFFER_SIZE, BytesRead, *RemoteAddr))
+	if (Socket->RecvFrom(RecvData, BUFFER_SIZE, BytesRead, *RemoteAddr))
 	{
-		if (BytesRead < sizeof(FNetBunchHead))
+		TArray<uint8> EncryptedPacket;
+		EncryptedPacket.Append(RecvData, BytesRead);
+
+		TArray<uint8> Data;
+		if (!FNetChannelEncryption::DecryptForRecv(EncryptedPacket, Data))
 		{
-			UE_LOG(LogDSUNetChannel, Display, TEXT("Recv a wrong data, size < head"));
+			UE_LOG(LogDSUNetChannel, Display, TEXT("FNetChannelEncryption::DecryptForRecv Failed..."));
 			return;
 		}
-		FNetBunchHead Head = *(FNetBunchHead*)Data;
 
+		FNetBunchHead Head = *(FNetBunchHead*)Data.GetData();
 		if (LinkState == ENetLinkState::Listen)
 		{
-			UE_LOG(LogDSUNetChannel, Display, TEXT("Server Recv A Protocol from [%s][%d]: %d"),
-				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber);
+			UE_LOG(LogDSUNetChannel, Display, TEXT("Server Recv A Protocol from [%s][%d]: %d, size=%d"),
+				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber, BytesRead);
 
 			if (auto Connect = Connections[RemoteAddr])
 			{
 				if (Connect->GetState() == ENetConnectionState::Join)
 				{
-					Connect->Analysis(Data, BytesRead);
+					Connect->Analysis(Data);
 				}
 				else
 				{
-					VerifyConnectionInfo(Connect, Data, BytesRead);
+					VerifyConnectionInfo(Connect, Data);
 				}
 			}
 			else
 			{
 				if (auto EmptyConnect = Connections.GetEmptyConnection(RemoteAddr))
 				{
-					VerifyConnectionInfo(EmptyConnect, Data, BytesRead);
+					VerifyConnectionInfo(EmptyConnect, Data);
 				}
 			}
 		}
 		else
 		{
-			UE_LOG(LogDSUNetChannel, Display, TEXT("Client Recv A Protocol from [%s][%d]: %d"),
-				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber);
+			UE_LOG(LogDSUNetChannel, Display, TEXT("Client Recv A Protocol from [%s][%d]: %d, size=%d"),
+				*RemoteAddr->ToString(false), RemoteAddr->GetPort(), Head.ProtocolsNumber, BytesRead);
 
 			if (Connections.LocalConnection->GetState() == ENetConnectionState::Join)
 			{
-				Connections.LocalConnection->Analysis(Data, BytesRead);
+				Connections.LocalConnection->Analysis(Data);
 			}
 			else
 			{
-				VerifyConnectionInfo(Connections.LocalConnection, Data, BytesRead);
+				VerifyConnectionInfo(Connections.LocalConnection, Data);
 			}
 		}
 	}

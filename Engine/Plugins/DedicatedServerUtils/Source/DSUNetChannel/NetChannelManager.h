@@ -24,8 +24,13 @@ public:
 	static FNetChannelManager* CreateNetChannelManager(ENetLinkState InState, ENetSocketType InType);
 	static void Destroy(FNetChannelManager* InInstance);
 
+	ENetConnectionState GetLocalConnectState() const;
+	TSharedPtr<FNetConnectionBase> GetLocalConnection() const;
+	TSharedPtr<FNetConnectionBase> GetRemoteConnection(const FNetAddr& InAddr);
+
 	FNetChannelBase* GetLocalChannel();
 	FNetChannelBase* GetRemoteChannel(const FNetChannelAddrInfo& AddrInfo);
+
 	UNetChannelObject* GetNetChannelObject(const FNetChannelAddrInfo& AddrInfo);
 	UNetChannelController* GetController();
 
@@ -37,17 +42,15 @@ public:
 protected:
 	virtual TStatId GetStatId() const { return TStatId(); }
 
-	virtual void VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, uint8* InData, int32 BytesNum);
+	virtual void VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, TArray<uint8>& InData);
 
 	struct FNetConnections
 	{
 		TSharedPtr<FNetConnectionBase> operator[](TSharedPtr<FInternetAddr> InternetAddr);
 		TSharedPtr<FNetConnectionBase> GetEmptyConnection(TSharedPtr<FInternetAddr> InternetAddr);
-		void Close(int32 Index);
 
 		TSharedPtr<FNetConnectionBase> LocalConnection;
 		TArray<TSharedPtr<FNetConnectionBase>> RemoteConnections;
-		TArray<int32> AliveRemoveConnectionsIndex;
 	} Connections;
 
 	ENetLinkState LinkState;
@@ -55,6 +58,4 @@ protected:
 
 public:
 	FORCEINLINE ENetLinkState GetLinkState() const { return LinkState; }
-	FORCEINLINE TSharedPtr<FNetConnectionBase> GetLocalConnection() const { return Connections.LocalConnection; }
-	ENetConnectionState GetLocalConnectState() const;
 };

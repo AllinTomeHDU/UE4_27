@@ -33,6 +33,28 @@ void FNetChannelManager::Destroy(FNetChannelManager* InInstance)
 	}
 }
 
+ENetConnectionState FNetChannelManager::GetLocalConnectState() const
+{
+	return Connections.LocalConnection->GetState();
+}
+
+TSharedPtr<FNetConnectionBase> FNetChannelManager::GetLocalConnection() const
+{
+	return Connections.LocalConnection;
+}
+
+TSharedPtr<FNetConnectionBase> FNetChannelManager::GetRemoteConnection(const FNetAddr& InAddr)
+{
+	if (auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem())
+	{
+		TSharedRef<FInternetAddr> TempAddr = SocketSubsystem->CreateInternetAddr();
+		TempAddr->SetIp(InAddr.IP);
+		TempAddr->SetPort(InAddr.Port);
+		return Connections[TempAddr];
+	}
+	return nullptr;
+}
+
 FNetChannelBase* FNetChannelManager::GetLocalChannel()
 {
 	return Connections.LocalConnection->GetMainChannel();
@@ -40,15 +62,9 @@ FNetChannelBase* FNetChannelManager::GetLocalChannel()
 
 FNetChannelBase* FNetChannelManager::GetRemoteChannel(const FNetChannelAddrInfo& AddrInfo)
 {
-	if (auto SocketSubsystem = FNetConnectionBase::GetSocketSubsystem())
+	if (auto Connect = GetRemoteConnection(AddrInfo.Addr))
 	{
-		TSharedRef<FInternetAddr> TempAddr = SocketSubsystem->CreateInternetAddr();
-		TempAddr->SetIp(AddrInfo.Addr.IP);
-		TempAddr->SetPort(AddrInfo.Addr.Port);
-		if (auto InConnection = Connections[TempAddr])
-		{
-			return InConnection->GetNetChannel(AddrInfo.GUID);
-		}
+		return Connect->GetNetChannel(AddrInfo.GUID);
 	}
 	return nullptr;
 }
@@ -89,18 +105,18 @@ void FNetChannelManager::Close()
 #if PLATFORM_WINDOWS
 #pragma optimize("",off)
 #endif
-void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, uint8* InData, int32 BytesNum)
+void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InConnection, TArray<uint8>& InData)
 {
 	if (!InConnection.IsValid() || !InConnection->GetMainChannel()) return;
 
-	TArray<uint8> NewData(InData, BytesNum);
+	//TArray<uint8> NewData(InData, BytesNum);
 	auto Channel = InConnection->GetMainChannel();
-	if (BytesNum > sizeof(FNetBunchHead))
+	if (InData.Num() > sizeof(FNetBunchHead))
 	{
-		Channel->AddMsg(NewData);
+		Channel->AddMsg(InData);
 	}
 
-	FNetBunchHead Head = *(FNetBunchHead*)InData;
+	FNetBunchHead Head = *(FNetBunchHead*)InData.GetData();
 	if (LinkState == ENetLinkState::Listen)
 	{
 		switch (Head.ProtocolsNumber)
@@ -182,21 +198,15 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 	}
 }
 
-ENetConnectionState FNetChannelManager::GetLocalConnectState() const
-{
-	return Connections.LocalConnection->GetState();
-}
-
 #if PLATFORM_WINDOWS
 #pragma optimize("",on)
 #endif
 
 TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::operator[](TSharedPtr<FInternetAddr> InternetAddr)
 {
-	for (auto& Index : AliveRemoveConnectionsIndex)
+	for (auto& Connect : RemoteConnections)
 	{
-		TSharedPtr<FNetConnectionBase> Connection = RemoteConnections[Index];
-		if (*Connection->GetAddr() == *InternetAddr) return Connection;
+		if (*Connect->GetAddr() == *InternetAddr) return Connect;
 	}
 	return nullptr;
 }
@@ -215,19 +225,9 @@ TSharedPtr<FNetConnectionBase> FNetChannelManager::FNetConnections::GetEmptyConn
 
 				//RemoteConnections[i]->Init();
 				RemoteConnections[i]->Lock();
-				AliveRemoveConnectionsIndex.AddUnique(i);
 				return RemoteConnections[i];
 			}
 		}
 	}
 	return nullptr;
-}
-
-void FNetChannelManager::FNetConnections::Close(int32 Index)
-{
-	if (Index >= 0 && Index < RemoteConnections.Num())
-	{
-		RemoteConnections[Index]->Close();
-		AliveRemoveConnectionsIndex.Remove(Index);
-	}
 }

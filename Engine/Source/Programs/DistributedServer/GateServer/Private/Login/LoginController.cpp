@@ -62,6 +62,10 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 				// 方案一让用户自己选择服务器分区，方案二根据服务器状态自动给用户分区（负载均衡）
 
 				SERVER_SEND(LoginServer, GameAddrInfo, P_LoginSuccess, HallServerInfo);
+				if (auto Connect = LoginServer->GetRemoteConnection(GameAddrInfo.Addr))
+				{
+					Connect->Close();
+				}
 				break;
 			}
 			case P_LoginFailure:
