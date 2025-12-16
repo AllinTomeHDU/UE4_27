@@ -7,7 +7,7 @@
 class FNetConnectionUDP : public FNetConnectionBase
 {
 public:
-	virtual bool Send(const TArray<uint8>& InData) override;
+	virtual bool Send(TArray<uint8>& InData) override;
 	virtual bool Recv(const FGuid& InChannelGUID, TArray<uint8>& InData) override;
 
 	virtual void Verify() override;

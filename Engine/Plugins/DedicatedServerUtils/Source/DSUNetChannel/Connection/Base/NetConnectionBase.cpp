@@ -1,5 +1,6 @@
 #include "NetConnectionBase.h"
 #include "../../DSUNetChannel.h"
+#include "../../Core/NetChannelEncryption.h"
 #include "../../NetChannelGlobalInfo.h"
 #include "../../Core/NetChannelType.h"
 #include "../../Core/NetChannelProtocols.h"
@@ -32,11 +33,11 @@ ISocketSubsystem* FNetConnectionBase::GetSocketSubsystem()
 	return ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
 }
 
-bool FNetConnectionBase::Send(const TArray<uint8>& InData)
+bool FNetConnectionBase::Send(TArray<uint8>& InData)
 {
 	if (!Socket) return false;
 
-	return true;
+	return FNetChannelEncryption::EncryptForSend(InData);
 }
 
 bool FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
@@ -138,7 +139,6 @@ void FNetConnectionBase::Analysis(TArray<uint8>& InData)
 		{
 			if (InData.Num() > sizeof(FNetBunchHead))
 			{
-				//TArray<uint8> InNewData(InData, BytesNum);
 				Channel->AddMsg(InData);
 			}
 			Channel->RecvProtocol(Head.ProtocolsNumber);

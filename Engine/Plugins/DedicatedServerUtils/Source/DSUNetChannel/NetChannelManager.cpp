@@ -177,7 +177,7 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			{
 				FString ErrorInfo;
 				NETCHANNEL_PROTOCOLS_RECV(P_Upgrade, ErrorInfo);
-				UE_LOG(LogDSUNetChannel, Error, TEXT("Error: %s"), *ErrorInfo);
+				UE_LOG(LogDSUNetChannel, Display, TEXT("Error: %s"), *ErrorInfo);
 				InConnection->Close();
 				break;
 			}
@@ -185,7 +185,7 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 			{
 				FString ErrorInfo;
 				NETCHANNEL_PROTOCOLS_RECV(P_Failure, ErrorInfo);
-				UE_LOG(LogDSUNetChannel, Error, TEXT("Error: %s"), *ErrorInfo);
+				UE_LOG(LogDSUNetChannel, Display, TEXT("Error: %s"), *ErrorInfo);
 				InConnection->Close();
 				break;
 			}

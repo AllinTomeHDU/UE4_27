@@ -8,7 +8,7 @@
 #endif
 struct FNetChannelEncryption
 {
-	static constexpr uint16 MagicCode = 0xBABA; // 数据包固定签名
+	static constexpr uint16 MagicCode = 0xDEBA; // 数据包固定签名
 
 	static void XorEncryptWithKey(TArray<uint8>& Buffer, uint32 Key)
 	{
@@ -34,39 +34,36 @@ struct FNetChannelEncryption
 		}
 	}
 
-	static bool EncryptForSend(const TArray<uint8>& InPlainData, TArray<uint8>& OutEncryptedPacket)
+	static bool EncryptForSend(TArray<uint8>& Data)
 	{
-		if (InPlainData.Num() == 0) return false;
+		if (Data.Num() == 0) return false;
 
 		const uint32 RandomKey = FMath::Rand();
 
-		TArray<uint8> EncryptedData = InPlainData;
-		XorEncryptWithKey(EncryptedData, RandomKey);
+		XorEncryptWithKey(Data, RandomKey);
 
-		const int32 FinalSize = sizeof(uint16) + sizeof(uint32) + EncryptedData.Num();
-		OutEncryptedPacket.SetNumUninitialized(FinalSize);
+		const int32 HeaderSize = sizeof(uint16) + sizeof(uint32);
+		const int32 FinalSize = HeaderSize + Data.Num();
+		Data.InsertUninitialized(0, HeaderSize);
 
-		uint8* WritePtr = OutEncryptedPacket.GetData();
+		uint8* WritePtr = Data.GetData();
 
 		FMemory::Memcpy(WritePtr, &MagicCode, sizeof(uint16));
 		WritePtr += sizeof(uint16);
 
 		FMemory::Memcpy(WritePtr, &RandomKey, sizeof(uint32));
-		WritePtr += sizeof(uint32);
-
-		FMemory::Memcpy(WritePtr, EncryptedData.GetData(), EncryptedData.Num());
 		return true;
 	}
 
-	static bool DecryptForRecv(const TArray<uint8>& InEncryptedPacket, TArray<uint8>& OutPlainData)
+	static bool DecryptForRecv(TArray<uint8>& Data)
 	{
-		if (InEncryptedPacket.Num() <= sizeof(uint16) + sizeof(uint32)) return false;
+		const int32 HeaderSize = sizeof(uint16) + sizeof(uint32);
+		if (Data.Num() <= HeaderSize) return false;
 
-		const uint8* ReadPtr = InEncryptedPacket.GetData();
+		uint8* DataPtr = Data.GetData();
 
 		uint16 Magic = 0;
-		FMemory::Memcpy(&Magic, ReadPtr, sizeof(uint16));
-		ReadPtr += sizeof(uint16);
+		FMemory::Memcpy(&Magic, DataPtr, sizeof(uint16));
 		if (Magic != MagicCode)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[Encryptor] invalid Magic=0x%04X"), Magic);
@@ -74,14 +71,11 @@ struct FNetChannelEncryption
 		}
 
 		uint32 RandomKey = 0;
-		FMemory::Memcpy(&RandomKey, ReadPtr, sizeof(uint32));
-		ReadPtr += sizeof(uint32);
+		FMemory::Memcpy(&RandomKey, DataPtr + sizeof(uint16), sizeof(uint32));
 
-		const int32 PayloadSize = InEncryptedPacket.Num() - sizeof(uint16) - sizeof(uint32);
-		OutPlainData.SetNumUninitialized(PayloadSize);
-		FMemory::Memcpy(OutPlainData.GetData(), ReadPtr, PayloadSize);
+		Data.RemoveAt(0, HeaderSize, false);
 
-		XorEncryptWithKey(OutPlainData, RandomKey);
+		XorEncryptWithKey(Data, RandomKey);
 		return true;
 	}
 };

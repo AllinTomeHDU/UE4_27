@@ -19,7 +19,7 @@ public:
 
 	static ISocketSubsystem* GetSocketSubsystem();
 
-	virtual bool Send(const TArray<uint8>& InData);
+	virtual bool Send(TArray<uint8>& InData);
 	virtual bool Recv(const FGuid& InChannelGUID, TArray<uint8>& InData);
 
 	virtual void Init();

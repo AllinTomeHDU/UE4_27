@@ -160,13 +160,10 @@ void FNetChannelDriverUDP::Listen()
 	TSharedPtr<FInternetAddr> RemoteAddr = SocketSubsystem->CreateInternetAddr();
 	if (Socket->RecvFrom(RecvData, BUFFER_SIZE, BytesRead, *RemoteAddr))
 	{
-		TArray<uint8> EncryptedPacket;
-		EncryptedPacket.Append(RecvData, BytesRead);
-
-		TArray<uint8> Data;
-		if (!FNetChannelEncryption::DecryptForRecv(EncryptedPacket, Data))
+		TArray<uint8> Data(RecvData, BytesRead);
+		if (!FNetChannelEncryption::DecryptForRecv(Data))
 		{
-			UE_LOG(LogDSUNetChannel, Display, TEXT("FNetChannelEncryption::DecryptForRecv Failed..."));
+			UE_LOG(LogDSUNetChannel, Display, TEXT("DecryptForRecv Failed..."));
 			return;
 		}
 
@@ -211,9 +208,6 @@ void FNetChannelDriverUDP::Listen()
 		}
 	}
 }
-#if PLATFORM_WINDOWS
-#pragma optimize("",on)
-#endif
 
 void FNetChannelDriverUDP::Close()
 {
@@ -229,3 +223,7 @@ void FNetChannelDriverUDP::Close()
 	}
 	bStopThread = true;
 }
+
+#if PLATFORM_WINDOWS
+#pragma optimize("",on)
+#endif
