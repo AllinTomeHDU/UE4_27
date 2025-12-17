@@ -2,6 +2,7 @@
 
 #include "Common/HttpManager.h"
 #include "HttpModule.h"
+#include "HttpManager.h"
 
 namespace BuildPatchServices
 {
@@ -39,3 +40,4 @@ namespace BuildPatchServices
 		return new FHttpManager();
 	}
 }
+

@@ -21,6 +21,11 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "DSUHttp",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "DSUThreadPool",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

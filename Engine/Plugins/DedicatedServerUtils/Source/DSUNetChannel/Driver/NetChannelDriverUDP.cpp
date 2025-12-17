@@ -160,12 +160,14 @@ void FNetChannelDriverUDP::Listen()
 	TSharedPtr<FInternetAddr> RemoteAddr = SocketSubsystem->CreateInternetAddr();
 	if (Socket->RecvFrom(RecvData, BUFFER_SIZE, BytesRead, *RemoteAddr))
 	{
-		TArray<uint8> Data(RecvData, BytesRead);
-		if (!FNetChannelEncryption::DecryptForRecv(Data))
+		if (BytesRead < sizeof(FNetBunchHead))
 		{
-			UE_LOG(LogDSUNetChannel, Display, TEXT("DecryptForRecv Failed..."));
+			UE_LOG(LogDSUNetChannel, Display, TEXT("Recv Warning: BytesRead < sizeof(FNetBunchHead)"));
 			return;
 		}
+
+		TArray<uint8> Data(RecvData, BytesRead);
+		FNetChannelEncryption::XorEncryptWithKey(Data);
 
 		FNetBunchHead Head = *(FNetBunchHead*)Data.GetData();
 		if (LinkState == ENetLinkState::Listen)

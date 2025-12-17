@@ -109,7 +109,6 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 {
 	if (!InConnection.IsValid() || !InConnection->GetMainChannel()) return;
 
-	//TArray<uint8> NewData(InData, BytesNum);
 	auto Channel = InConnection->GetMainChannel();
 	if (InData.Num() > sizeof(FNetBunchHead))
 	{

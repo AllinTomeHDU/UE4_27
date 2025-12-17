@@ -37,7 +37,8 @@ bool FNetConnectionBase::Send(TArray<uint8>& InData)
 {
 	if (!Socket) return false;
 
-	return FNetChannelEncryption::EncryptForSend(InData);
+	FNetChannelEncryption::XorEncryptWithKey(InData);
+	return true;
 }
 
 bool FNetConnectionBase::Recv(const FGuid& InChannelGUID, TArray<uint8>& InData)
