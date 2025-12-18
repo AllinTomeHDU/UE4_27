@@ -4,9 +4,9 @@
 #include "GateServer.h"
 #include "RequiredProgramMainCPPInclude.h"
 #include "Login/LoginController.h"
-#include "DSUNetChannel/NetChannelGlobalInfo.h"
-#include "DSUThreadPool/ServerThreadManager.h"
-#include "DSUNetChannel/Channel/NetChannelBase.h"
+#include "DS_NetChannel/NetChannelGlobalInfo.h"
+#include "DS_ThreadPool/ServerThreadManager.h"
+#include "DS_NetChannel/Channel/NetChannelBase.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogGateServer, Log, All);
 IMPLEMENT_APPLICATION(GateServer, "GateServer");
@@ -43,7 +43,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 		double Now = FPlatformTime::Seconds();
 		float DeltaTime = Now - LastTime;
 
-		DSUThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
+		DS_ThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
 		LoginServer->Tick(DeltaTime);
 		DatabaseClient->Tick(DeltaTime);
 
@@ -52,7 +52,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 
 	FNetChannelManager::Destroy(LoginServer);
 	FNetChannelManager::Destroy(DatabaseClient);
-	DSUThreadPool::FThreadManagement::Destroy();
+	DS_ThreadPool::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();
 	return 0;

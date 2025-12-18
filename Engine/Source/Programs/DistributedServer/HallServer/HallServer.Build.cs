@@ -15,6 +15,6 @@ public class HallServer : ModuleRules
 		PrivateDependencyModuleNames.Add("ApplicationCore");
 		PrivateDependencyModuleNames.Add("Projects");
 
-		PrivateDependencyModuleNames.Add("DSUNetChannel");
+		PrivateDependencyModuleNames.Add("DS_NetChannel");
 	}
 }

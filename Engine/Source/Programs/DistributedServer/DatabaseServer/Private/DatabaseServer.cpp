@@ -7,10 +7,10 @@
 #include "MySQL/MySQLController.h"
 #include "MySQL/Link/MySQL_Link.h"
 #include "DatabaseGlobalInfo.h"
-#include "DSUNetChannel/NetChannelGlobalInfo.h"
-#include "DSUNetChannel/NetChannelManager.h"
-#include "DSUThreadPool/ServerThreadManager.h"
-#include "DSUNetChannel/Channel/NetChannelBase.h"
+#include "DS_NetChannel/NetChannelGlobalInfo.h"
+#include "DS_NetChannel/NetChannelManager.h"
+#include "DS_ThreadPool/ServerThreadManager.h"
+#include "DS_NetChannel/Channel/NetChannelBase.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogDDServer, Log, All);
@@ -62,7 +62,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 		double Now = FPlatformTime::Seconds();
 		float DeltaTime = Now - LastTime;
 
-		DSUThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
+		DS_ThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
 		Server->Tick(DeltaTime);
 		//Client->Tick(DeltaTime);
 
@@ -73,7 +73,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 
 	FNetChannelManager::Destroy(Server);
 	//FNetChannelManager::Destroy(Client);
-	DSUThreadPool::FThreadManagement::Destroy();
+	DS_ThreadPool::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();
 	return 0;

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DSUNetChannel/NetChannelManager.h"
+#include "DS_NetChannel/NetChannelManager.h"
 
 
 extern FNetChannelManager* HallServer = nullptr;

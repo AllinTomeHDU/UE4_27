@@ -1,7 +1,7 @@
 #include "LoginController.h"
 #include "GateServer.h"
-#include "DSUNetChannel/Core/NetChannelProtocols.h"
-#include "DSUNetChannel/Connection/Base/NetConnectionBase.h"
+#include "DS_NetChannel/Core/NetChannelProtocols.h"
+#include "DS_NetChannel/Connection/Base/NetConnectionBase.h"
 
 
 void ULoginController::Init()

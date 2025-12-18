@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DSUNetChannel/UObject/NetChannelController.h"
+#include "DS_NetChannel/UObject/NetChannelController.h"
 #include "HallController.generated.h"
 
 

@@ -370,7 +370,7 @@ public:
 	 * @param UserId id of the local user that received the invite
 	 * @param FriendId remote friend id that sent the invite
 	 */
-	 DEFINE_ONLINE_DELEGATE_TWO_PARAM(OnInviteReceived, const FUniqueNetId& /*UserId*/, const FUniqueNetId& /*FriendId*/);
+	DEFINE_ONLINE_DELEGATE_TWO_PARAM(OnInviteReceived, const FUniqueNetId& /*UserId*/, const FUniqueNetId& /*FriendId*/);
 
 	/**
 	 * Delegate called when a remote friend accepts an invite
