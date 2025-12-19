@@ -30,14 +30,13 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 		{
 			case P_Login:
 			{
-				FString UserID;
-				FString UserName;
-				NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
+				FString SteamID, PersonaName, Country;
+				NETCHANNEL_PROTOCOLS_RECV(P_Login, SteamID, PersonaName, Country);
 
 				FNetChannelAddrInfo AddrInfo;
 				if (GetChannelAddrInfo(AddrInfo))
 				{
-					CLIENT_SEND(DatabaseClient, P_Login, AddrInfo, UserID, UserName);
+					CLIENT_SEND(DatabaseClient, P_Login, AddrInfo, SteamID, PersonaName, Country);
 				}
 				else
 				{

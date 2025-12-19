@@ -19,6 +19,7 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	FNetChannelGlobalInfo::Get()->Init();
 	HallServer = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Listen, ENetSocketType::UDP);
 	CenterClient = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Connect, ENetSocketType::UDP);
+	DatabaseClient = FNetChannelManager::CreateNetChannelManager(ENetLinkState::Connect, ENetSocketType::UDP);
 
 	FNetChannelBase::SimpleControllerDelegate.BindLambda(
 		[]()->UClass* { return UHallController::StaticClass(); }
@@ -27,13 +28,19 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 	if (!HallServer || !HallServer->Init())
 	{
 		delete HallServer;
-		UE_LOG(LogTemp, Error, TEXT("Server Create Failed"));
+		UE_LOG(LogTemp, Error, TEXT("HallServer Create Failed"));
 		return -1;
 	}
 	if (!CenterClient || !CenterClient->Init(10100))
 	{
 		delete CenterClient;
-		UE_LOG(LogTemp, Error, TEXT("Client Create Failed"));
+		UE_LOG(LogTemp, Error, TEXT("CenterClient Create Failed"));
+		return -1;
+	}
+	if (!DatabaseClient || !DatabaseClient->Init(13306))
+	{
+		delete DatabaseClient;
+		UE_LOG(LogTemp, Error, TEXT("DatabaseClient Create Failed"));
 		return -1;
 	}
 
@@ -47,12 +54,14 @@ INT32_MAIN_INT32_ARGC_TCHAR_ARGV()
 		DS_ThreadPool::FThreadManagement::Get()->Tick(DeltaTime);
 		HallServer->Tick(DeltaTime);
 		CenterClient->Tick(DeltaTime);
+		DatabaseClient->Tick(DeltaTime);
 
 		LastTime = Now;
 	}
 
 	FNetChannelManager::Destroy(HallServer);
 	FNetChannelManager::Destroy(CenterClient);
+	FNetChannelManager::Destroy(DatabaseClient);
 	DS_ThreadPool::FThreadManagement::Destroy();
 
 	FEngineLoop::AppExit();

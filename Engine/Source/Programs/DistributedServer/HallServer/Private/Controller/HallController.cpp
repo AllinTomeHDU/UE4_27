@@ -30,18 +30,31 @@ void UHallController::RecvProtocol(uint32 InProtocol)
 		{
 			case P_Login:
 			{
-				FString UserID;
-				FString UserName;
-				NETCHANNEL_PROTOCOLS_RECV(P_Login, UserID, UserName);
+				FString SteamID;
+				NETCHANNEL_PROTOCOLS_RECV(P_Login, SteamID);
+				//NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
 
-
-				NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+				FNetChannelAddrInfo AddrInfo;
+				if (GetChannelAddrInfo(AddrInfo))
+				{
+					CLIENT_SEND(DatabaseClient, P_RequestUserAssetInfo, AddrInfo, SteamID);
+				}
 				break;
 			}
 		}
 	}
 	else
 	{
-
+		switch (InProtocol)
+		{
+			case P_ResponseUserAssetInfo:
+			{
+				FNetChannelAddrInfo GameAddrInfo;
+				FNetUserAssetInfo UserAssets;
+				NETCHANNEL_PROTOCOLS_RECV(P_ResponseUserAssetInfo, GameAddrInfo, UserAssets);
+				SERVER_SEND(HallServer, GameAddrInfo, P_LoginSuccess, UserAssets);
+				break;
+			}
+		}
 	}
 }

@@ -7,4 +7,5 @@
 
 
 extern FNetChannelManager* HallServer = nullptr;
-extern FNetChannelManager* CenterClient = nullptr;
+extern FNetChannelManager* CenterClient = nullptr; 
+extern FNetChannelManager* DatabaseClient = nullptr;

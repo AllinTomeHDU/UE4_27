@@ -20,5 +20,5 @@ protected:
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
 private:
-
+	
 };

@@ -23,8 +23,11 @@ protected:
 	virtual void Close() override;
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
-	void DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& UserID, const FString& UserName);
+	void DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrInfo, 
+		const FString& SteamID, const FString& PersonaName, const FString& Country);
 	void SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInfo);
+
+	void DealWithUserAssetsRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& SteamID);
 
 private:
 	TSharedPtr<FMySQL_Link> ReadLink;

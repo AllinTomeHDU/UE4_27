@@ -73,19 +73,27 @@ void UMySQLController::RecvProtocol(uint32 InProtocol)
 		case P_Login:
 		{
 			FNetChannelAddrInfo GameAddrInfo;
-			FString UserID;
-			FString UserName;
-			NETCHANNEL_PROTOCOLS_RECV(P_Login, GameAddrInfo, UserID, UserName);
-			DealWithLoginRequest(GameAddrInfo, UserID, UserName);
+			FString SteamID, PersonaName, Country;
+			NETCHANNEL_PROTOCOLS_RECV(P_Login, GameAddrInfo, SteamID, PersonaName, Country);
+			DealWithLoginRequest(GameAddrInfo, SteamID, PersonaName, Country);
+			break;
+		}
+		case P_RequestUserAssetInfo:
+		{
+			FNetChannelAddrInfo GameAddrInfo;
+			FString SteamID;
+			NETCHANNEL_PROTOCOLS_RECV(P_RequestUserAssetInfo, GameAddrInfo, SteamID);
+			DealWithUserAssetsRequest(GameAddrInfo, SteamID);
 			break;
 		}
 	}
 }
 
-void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& UserID, const FString& UserName)
+void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& SteamID, 
+											const FString& PersonaName, const FString& Country)
 {
 	FString TableName = TEXT("player_info");
-	FString SQL = FString::Printf(TEXT("SELECT user_name FROM %s WHERE user_id='%s';"), *TableName, *UserID);
+	FString SQL = FString::Printf(TEXT("SELECT persona_name FROM %s WHERE steam_id='%s';"), *TableName, *SteamID);
 	TArray<FMySQL_FieldsData> Results;
 	if (Get(SQL, Results))
 	{
@@ -93,10 +101,10 @@ void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrI
 		if (Results.Num() > 0 && Results[0].DataValues.Num() > 0)
 		{
 			// 登录
-			if (UserName == Results[0].DataValues[0])
+			if (PersonaName == Results[0].DataValues[0])
 			{
-				SQL = FString::Printf(TEXT("UPDATE %s SET login_date='%s' WHERE user_id='%s';"),
-					*TableName, *NowDate, *UserID);
+				SQL = FString::Printf(TEXT("UPDATE %s SET login_date='%s' WHERE steam_id='%s';"),
+					*TableName, *NowDate, *SteamID);
 				if (Post(SQL))
 				{
 					SendHallServerInfo(GameAddrInfo);
@@ -106,8 +114,9 @@ void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrI
 			else
 			{
 				// 更新用户名
-				SQL = FString::Printf(TEXT("UPDATE %s SET user_name='%s',login_date='%s' WHERE user_id='%s';"),
-					*TableName, *UserName, *NowDate, *UserID);
+				SQL = FString::Printf(
+					TEXT("UPDATE %s SET persona_name='%s',country='%s',login_date='%s' WHERE steam_id='%s';"),
+					*TableName, *PersonaName, *Country, *NowDate, *SteamID);
 				if (Post(SQL))
 				{
 					SendHallServerInfo(GameAddrInfo);
@@ -118,18 +127,13 @@ void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrI
 		else
 		{
 			// 注册
-			TArray<FString> Fields = { TEXT("user_id"), TEXT("user_name"), TEXT("login_date"), TEXT("register_date") };
-			SQL = FString::Printf(
-				TEXT("INSERT INTO %s (%s, %s, %s, %s) VALUES ('%s', '%s', '%s', '%s');"),
-				*TableName, *Fields[0], *Fields[1], *Fields[2], *Fields[3],
-				*UserID, *UserName, *NowDate, *NowDate
-			);
+			SQL = FString::Printf(TEXT("INSERT INTO %s VALUES ('%s', '%s', '%s', '%s', '%s');"),
+								  *TableName, *SteamID, *PersonaName, *Country, *NowDate, *NowDate);
 			if (Post(SQL))
 			{
 				SendHallServerInfo(GameAddrInfo);
 				return;
 			}
-
 		}
 	}
 
@@ -137,6 +141,9 @@ void UMySQLController::DealWithLoginRequest(const FNetChannelAddrInfo& GameAddrI
 	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
 }
 
+/*
+* 若是本地部署的专用服务器需要维持游戏会话，可以根据传入的账号地区给玩家分配服务器
+*/
 void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInfo)
 {
 	FNetServerInfo ServerInfo;
@@ -163,5 +170,53 @@ void UMySQLController::SendHallServerInfo(const FNetChannelAddrInfo& GameAddrInf
 	}
 
 	FString ErrorMsg = TEXT("GetHallServerInfo Failed...");
+	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
+}
+
+void UMySQLController::DealWithUserAssetsRequest(const FNetChannelAddrInfo& GameAddrInfo, const FString& SteamID)
+{
+	FNetUserAssetInfo UserAssets;
+	FString TableName = TEXT("player_assets");
+	FString SQL = FString::Printf(TEXT("SELECT * FROM %s WHERE steam_id='%s';"), *TableName, *SteamID);
+	TArray<FMySQL_FieldsData> Results;
+	if (Get(SQL, Results))
+	{
+		FString NowDate = FDateTime::Now().ToString(TEXT("%Y-%m-%d %H:%M:%S"));
+		if (Results.Num() > 0 && Results[0].DataValues.Num() > 0)
+		{
+			if (Results.Num() == 5 && Results[0].DataValues.Num() > 0)
+			{
+				FCStringAnsi::Strncpy(UserAssets.Rank, TCHAR_TO_UTF8(*Results[1].DataValues[0]), 20);
+				UserAssets.SpiritStone = FCString::Atoi(*Results[2].DataValues[0]);
+				UserAssets.ImmortalJade = FCString::Atoi(*Results[3].DataValues[0]);
+				NETCHANNEL_PROTOCOLS_SEND(P_ResponseUserAssetInfo, GameAddrInfo, UserAssets);
+				return;
+			}
+		}
+		else
+		{
+			// 注册
+			SQL = FString::Printf(TEXT("INSERT INTO `%s` (`steam_id`,`update_time`) VALUES ('%s', '%s');"), 
+								  *TableName, *SteamID, *NowDate);
+			if (Post(SQL))
+			{
+				// 插入之后再次查找，获取某些字段的默认构造值
+				SQL = FString::Printf(TEXT("SELECT * FROM %s WHERE steam_id='%s';"), *TableName, *SteamID);
+				if (Get(SQL, Results))
+				{
+					if (Results.Num() == 5 && Results[0].DataValues.Num() > 0)
+					{
+						FCStringAnsi::Strncpy(UserAssets.Rank, TCHAR_TO_UTF8(*Results[1].DataValues[0]), 20);
+						UserAssets.SpiritStone = FCString::Atoi(*Results[2].DataValues[0]);
+						UserAssets.ImmortalJade = FCString::Atoi(*Results[3].DataValues[0]);
+						NETCHANNEL_PROTOCOLS_SEND(P_ResponseUserAssetInfo, GameAddrInfo, UserAssets);
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	FString ErrorMsg = TEXT("DealWithUserAssetsRequest Failed...");
 	NETCHANNEL_PROTOCOLS_SEND(P_LoginFailure, GameAddrInfo, ErrorMsg);
 }
