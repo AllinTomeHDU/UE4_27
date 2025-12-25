@@ -1,6 +1,6 @@
 #include "LoginController.h"
 #include "GateServer.h"
-#include "DS_NetChannel/Core/NetChannelProtocols.h"
+#include "DS_NetChannel/Definition/NetChannelProtocols.h"
 #include "DS_NetChannel/Connection/Base/NetConnectionBase.h"
 
 
@@ -28,15 +28,32 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 	{
 		switch (InProtocol)
 		{
-			case P_Login:
+			case P_Register:
 			{
-				FString SteamID, PersonaName, Country;
-				NETCHANNEL_PROTOCOLS_RECV(P_Login, SteamID, PersonaName, Country);
+				FString Account, Password, Name, Country, Platform;
+				NETCHANNEL_PROTOCOLS_RECV(P_Register, Account, Password, Name, Country, Platform);
 
 				FNetChannelAddrInfo AddrInfo;
 				if (GetChannelAddrInfo(AddrInfo))
 				{
-					CLIENT_SEND(DatabaseClient, P_Login, AddrInfo, SteamID, PersonaName, Country);
+					CLIENT_SEND(DatabaseClient, P_Register, AddrInfo, Account, Password, Name, Country, Platform);
+				}
+				else
+				{
+					FString ErrorMsg = TEXT("GetChannelAddrInfo Error...");
+					NETCHANNEL_PROTOCOLS_SEND(P_RegisterFailure, ErrorMsg);
+				}
+				break;
+			}
+			case P_Login:
+			{
+				FString Account, Password;
+				NETCHANNEL_PROTOCOLS_RECV(P_Login, Account, Password);
+
+				FNetChannelAddrInfo AddrInfo;
+				if (GetChannelAddrInfo(AddrInfo))
+				{
+					CLIENT_SEND(DatabaseClient, P_Login, AddrInfo, Account, Password);
 				}
 				else
 				{
@@ -51,6 +68,35 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 	{
 		switch (InProtocol)
 		{
+			/*
+			* 注册
+			*/
+			case P_RegisterSuccess:
+			{
+				FNetChannelAddrInfo GameAddrInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_RegisterSuccess, GameAddrInfo);
+				SERVER_SEND(LoginServer, GameAddrInfo, P_RegisterSuccess);
+				break;
+			}
+			case P_RegisterFailure:
+			{
+				FNetChannelAddrInfo GameAddrInfo;
+				FString ErrorMsg;
+				NETCHANNEL_PROTOCOLS_RECV(P_RegisterFailure, GameAddrInfo, ErrorMsg);
+				SERVER_SEND(LoginServer, GameAddrInfo, P_RegisterFailure, ErrorMsg);
+				break;
+			}
+			case P_AccountAlreadyExits:
+			{
+				FNetChannelAddrInfo GameAddrInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_AccountAlreadyExits, GameAddrInfo);
+				SERVER_SEND(LoginServer, GameAddrInfo, P_AccountAlreadyExits);
+				break;
+			}
+
+			/*
+			* 登录
+			*/
 			case P_LoginSuccess:
 			{
 				FNetChannelAddrInfo GameAddrInfo;
@@ -72,7 +118,35 @@ void ULoginController::RecvProtocol(uint32 InProtocol)
 				FNetChannelAddrInfo AddrInfo;
 				FString ErrorMsg;
 				NETCHANNEL_PROTOCOLS_RECV(P_LoginFailure, AddrInfo, ErrorMsg);
-				SERVER_SEND(LoginServer, AddrInfo, P_LoginFailure);
+				SERVER_SEND(LoginServer, AddrInfo, P_LoginFailure, ErrorMsg);
+				break;
+			}
+			case P_AbsentAccount:
+			{
+				FNetChannelAddrInfo AddrInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_AbsentAccount, AddrInfo);
+				SERVER_SEND(LoginServer, AddrInfo, P_AbsentAccount);
+				break;
+			}
+			case P_AbnormalAccount:
+			{
+				FNetChannelAddrInfo AddrInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_AbnormalAccount, AddrInfo);
+				SERVER_SEND(LoginServer, AddrInfo, P_AbnormalAccount);
+				break;
+			}
+			case P_IncorrectPassword:
+			{
+				FNetChannelAddrInfo AddrInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_IncorrectPassword, AddrInfo);
+				SERVER_SEND(LoginServer, AddrInfo, P_IncorrectPassword);
+				break;
+			}
+			case P_VerificationError:
+			{
+				FNetChannelAddrInfo AddrInfo;
+				NETCHANNEL_PROTOCOLS_RECV(P_VerificationError, AddrInfo);
+				SERVER_SEND(LoginServer, AddrInfo, P_VerificationError);
 				break;
 			}
 		}

@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "Core/TextureHelperType.h"
+#include "Definition/TextureHelperType.h"
 #include "TextureHelperBPLibrary.generated.h"
 
 class UTexture2D;

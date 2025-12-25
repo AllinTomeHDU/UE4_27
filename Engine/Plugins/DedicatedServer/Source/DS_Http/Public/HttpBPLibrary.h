@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/HttpType.h"
+#include "Definition/HttpType.h"
 #include "HttpBPLibrary.generated.h"
 
 

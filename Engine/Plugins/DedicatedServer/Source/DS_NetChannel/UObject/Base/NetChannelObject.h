@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "../../Core/NetChannelType.h"
+#include "../../Definition/NetChannelType.h"
 #include "NetChannelObject.generated.h"
 
 class FNetChannelBase;

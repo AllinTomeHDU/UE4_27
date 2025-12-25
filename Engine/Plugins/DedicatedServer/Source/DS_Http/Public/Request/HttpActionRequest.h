@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
-#include "../Core/HttpType.h"
+#include "../Definition/HttpType.h"
 
 
 struct DS_HTTP_API FHttpActionRequest : public TSharedFromThis<FHttpActionRequest>

@@ -10,6 +10,16 @@ class UHallController : public UNetChannelController
 {
 	GENERATED_BODY()
 
+	struct FNetUserAssets
+	{
+		FNetUserAssets() : SpiritStone(0), ImmortalJade(0)
+		{
+			FMemory::Memset(Rank, 0, sizeof(Rank));
+		}
+		char Rank[20];
+		uint32 SpiritStone;
+		uint32 ImmortalJade;
+	};
 public:
 
 
@@ -20,5 +30,4 @@ protected:
 	virtual void RecvProtocol(uint32 InProtocol) override;
 
 private:
-	
 };

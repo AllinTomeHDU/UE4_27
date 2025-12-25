@@ -1,5 +1,5 @@
 #include "Request/HttpActionMultipleRequest.h"
-#include "Core/HttpMacro.h"
+#include "Definition/HttpMacro.h"
 #include "Client/HttpClient.h"
 
 

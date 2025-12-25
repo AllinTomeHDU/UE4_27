@@ -1,9 +1,9 @@
 #include "NetConnectionBase.h"
 #include "../../DS_NetChannel.h"
-#include "../../Core/NetChannelEncryption.h"
 #include "../../NetChannelGlobalInfo.h"
-#include "../../Core/NetChannelType.h"
-#include "../../Core/NetChannelProtocols.h"
+#include "../../Definition/NetChannelEncryption.h"
+#include "../../Definition/NetChannelType.h"
+#include "../../Definition/NetChannelProtocols.h"
 #include "SocketSubsystem.h"
 #include "Sockets.h"
 

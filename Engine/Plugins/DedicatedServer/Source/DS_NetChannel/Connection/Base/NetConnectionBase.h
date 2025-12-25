@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../Core/NetChannelType.h"
+#include "../../Definition/NetChannelType.h"
 #include "../../Channel/NetChannelBase.h"
 
 class FNetChannelManager;

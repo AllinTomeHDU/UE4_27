@@ -1,7 +1,7 @@
 #include "NetChannelManager.h"
 #include "NetChannelGlobalInfo.h"
 #include "DS_NetChannel.h"
-#include "Core/NetChannelProtocols.h"
+#include "Definition/NetChannelProtocols.h"
 #include "Driver/NetChannelDriverUDP.h"
 #include "Driver/NetChannelDriverTCP.h"
 #include "Connection/Base/NetConnectionBase.h"
@@ -180,19 +180,10 @@ void FNetChannelManager::VerifyConnectionInfo(TSharedPtr<FNetConnectionBase> InC
 				InConnection->Close();
 				break;
 			}
-			case P_Failure:
-			{
-				FString ErrorInfo;
-				NETCHANNEL_PROTOCOLS_RECV(P_Failure, ErrorInfo);
-				UE_LOG(LogDS_NetChannel, Display, TEXT("Error: %s"), *ErrorInfo);
-				InConnection->Close();
-				break;
-			}
 		}
 		if (UNetChannelObject* NetObject = Channel->GetNetObject<UNetChannelObject>())
 		{
-			Head.ProtocolsNumber == P_Welcom ? NetObject->JoinDelegate.Broadcast(true)
-											 : NetObject->JoinDelegate.Broadcast(false);
+			NetObject->JoinDelegate.Broadcast(Head.ProtocolsNumber == P_Welcom);
 		}
 	}
 }

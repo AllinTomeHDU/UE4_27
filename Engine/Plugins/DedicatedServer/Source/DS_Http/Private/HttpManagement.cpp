@@ -1,5 +1,5 @@
 #include "HttpManagement.h"
-#include "Core/HttpMacro.h"
+#include "Definition/HttpMacro.h"
 #include "Request/HttpActionSingleRequest.h"
 #include "Request/HttpActionMultipleRequest.h"
 #include "HttpModule.h"

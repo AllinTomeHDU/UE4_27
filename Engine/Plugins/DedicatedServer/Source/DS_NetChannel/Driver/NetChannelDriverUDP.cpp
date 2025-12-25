@@ -1,7 +1,7 @@
 #include "NetChannelDriverUDP.h"
 #include "../DS_NetChannel.h"
 #include "../NetChannelGlobalInfo.h"
-#include "../Core/NetChannelEncryption.h"
+#include "../Definition/NetChannelEncryption.h"
 #include "../Connection/NetConnectionUDP.h"
 #include "DS_ThreadPool/ServerThreadManager.h"
 #include "Sockets.h"

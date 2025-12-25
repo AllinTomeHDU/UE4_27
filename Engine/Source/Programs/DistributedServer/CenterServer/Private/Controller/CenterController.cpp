@@ -1,6 +1,6 @@
 #include "CenterController.h"
 #include "CenterServer.h"
-#include "DS_NetChannel/Core/NetChannelProtocols.h"
+#include "DS_NetChannel/Definition/NetChannelProtocols.h"
 #include "DS_NetChannel/Connection/Base/NetConnectionBase.h"
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Core/NetChannelProtocols.h"
+#include "../Definition/NetChannelProtocols.h"
 
 
 DEFINITION_NETCHANNEL_PROTOCOLS(Test, 1000)

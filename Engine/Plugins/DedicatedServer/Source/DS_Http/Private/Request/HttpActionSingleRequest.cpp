@@ -1,6 +1,6 @@
 #include "Request/HttpActionSingleRequest.h"
-#include "Core/HttpMacro.h"
 #include "Client/HttpClient.h"
+#include "Definition/HttpMacro.h"
 
 
 bool FHttpActionSingleRequest::Suspend()

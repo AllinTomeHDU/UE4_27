@@ -1,6 +1,6 @@
 #include "HallController.h"
 #include "HallServer.h"
-#include "DS_NetChannel/Core/NetChannelProtocols.h"
+#include "DS_NetChannel/Definition/NetChannelProtocols.h"
 #include "DS_NetChannel/Connection/Base/NetConnectionBase.h"
 
 
@@ -30,14 +30,14 @@ void UHallController::RecvProtocol(uint32 InProtocol)
 		{
 			case P_Login:
 			{
-				FString SteamID;
-				NETCHANNEL_PROTOCOLS_RECV(P_Login, SteamID);
-				//NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
+				FString Account;
+				NETCHANNEL_PROTOCOLS_RECV(P_Login, Account);
+				NETCHANNEL_PROTOCOLS_SEND(P_LoginSuccess);
 
 				FNetChannelAddrInfo AddrInfo;
 				if (GetChannelAddrInfo(AddrInfo))
 				{
-					CLIENT_SEND(DatabaseClient, P_RequestUserAssetInfo, AddrInfo, SteamID);
+					CLIENT_SEND(DatabaseClient, P_RequestUserAssets, AddrInfo, Account);
 				}
 				break;
 			}
@@ -47,12 +47,12 @@ void UHallController::RecvProtocol(uint32 InProtocol)
 	{
 		switch (InProtocol)
 		{
-			case P_ResponseUserAssetInfo:
+			case P_ResponseUserAssets:
 			{
 				FNetChannelAddrInfo GameAddrInfo;
-				FNetUserAssetInfo UserAssets;
-				NETCHANNEL_PROTOCOLS_RECV(P_ResponseUserAssetInfo, GameAddrInfo, UserAssets);
-				SERVER_SEND(HallServer, GameAddrInfo, P_LoginSuccess, UserAssets);
+				FNetUserAssets UserAssets;
+				NETCHANNEL_PROTOCOLS_RECV(P_ResponseUserAssets, GameAddrInfo, UserAssets);
+				SERVER_SEND(HallServer, GameAddrInfo, P_ResponseUserAssets, UserAssets);
 				break;
 			}
 		}

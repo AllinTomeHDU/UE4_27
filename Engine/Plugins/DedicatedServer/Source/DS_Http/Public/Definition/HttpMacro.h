@@ -6,7 +6,7 @@
 
 namespace DS_Http
 {
-	void RequestPtrToRequest(FHttpRequestPtr Request, FHttpRequest& HttpRequest)
+	inline void RequestPtrToRequest(FHttpRequestPtr Request, FHttpRequest& HttpRequest)
 	{
 		if (Request.IsValid())
 		{
@@ -20,7 +20,7 @@ namespace DS_Http
 		}
 	}
 
-	void ResponsePtrToResponse(FHttpResponsePtr Response, FHttpResponse& HttpResponse)
+	inline void ResponsePtrToResponse(FHttpResponsePtr Response, FHttpResponse& HttpResponse)
 	{
 		if (Response.IsValid())
 		{
@@ -36,7 +36,7 @@ namespace DS_Http
 
 	// 判断一个UTF8字符是否属于合法字符集（A-Z, a-z, 0-9, -+=_.~:/#@?&）
 	// 合法字符可直接放入URL，非法字符需要进行URL编码(对‘%’进行转义)
-	bool IsLegitimateChar(UTF8CHAR LookupChar)
+	inline bool IsLegitimateChar(UTF8CHAR LookupChar)
 	{
 		//Infrastructure construction
 		static int8 TemplateChars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-+=_.~:/#@?&";
@@ -57,7 +57,7 @@ namespace DS_Http
 	}
 
 	// 若数据包里有中文字符，进行特殊处理
-	FString EncodeURL(const TCHAR* InUnencodedString)
+	inline FString EncodeURL(const TCHAR* InUnencodedString)
 	{
 		FString OutEncodedString;
 		TCHAR PreallocationBuffer[2] = { 0 };

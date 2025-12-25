@@ -132,15 +132,3 @@ struct DS_NETCHANNEL_API FNetServerInfo
 	char Name[20];
 	FNetAddr Addr;
 };
-
-struct DS_NETCHANNEL_API FNetUserAssetInfo
-{
-	FNetUserAssetInfo() : SpiritStone(0), ImmortalJade(0)
-	{
-		FMemory::Memset(Rank, 0, sizeof(Rank));
-	}
-
-	char Rank[20];
-	uint32 SpiritStone;
-	uint32 ImmortalJade;
-};
